@@ -1,9 +1,30 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-brand-primary: #2868f6;
+  --color-brand-primary-dark: #1e56d8;
+  --color-brand-primary-deep: #174cb7;
+  --color-brand-primary-light: #4babfa;
+  --color-brand-blue-text: #1e5bc6;
+  --color-brand-navy: #102a50;
+  --color-brand-text: #435b80;
+  --color-brand-muted: #6b7f9f;
+  --color-brand-border: #d9e7fa;
+  --color-brand-border-light: #cfe1ff;
+  --color-brand-soft: #f1f7ff;
+  --color-brand-soft-strong: #eaf3ff;
+  --color-brand-mint: #32c9a5;
+  --color-brand-mint-soft: #ddf9f3;
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -16,7 +37,10 @@ a {
   text-decoration: none;
 }
 
-button {
+button,
+input,
+textarea,
+select {
   font: inherit;
 }
 
