@@ -2,25 +2,28 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import HashLink from "@/components/ui/HashLink"
 
 const quickMenus = [
   {
     label: "로그인",
     href: "/login",
     icon: "/icons/quick-menu/login.svg",
+    isHash: false,
   },
   {
     label: "문의하기",
     href: "#contact",
     icon: "/icons/quick-menu/contact.svg",
+    isHash: true,
   },
 ] as const
 
 const buttonClassName = `
   group
-  flex h-[76px] w-[76px]
+  flex h-14 w-14
   cursor-pointer items-center justify-center
-  rounded-[24px]
+  rounded-[18px]
   border border-brand-border
   bg-white
   shadow-[0_12px_28px_rgba(50,94,160,0.12)]
@@ -51,12 +54,12 @@ const buttonClassName = `
   motion-reduce:transform-none
   motion-reduce:transition-none
 
-  xl:h-[84px]
-  xl:w-[84px]
+  xl:h-16
+  xl:w-16
 `
 
 const iconClassName = `
-  h-[34px] w-[34px]
+  h-6 w-6
   object-contain
   transition-[filter] duration-300 ease-out
 
@@ -71,8 +74,7 @@ const iconClassName = `
 
   motion-reduce:transition-none
 
-  xl:h-[38px]
-  xl:w-[38px]
+  xl:h-7 xl:w-7
 `
 
 export default function QuickMenu() {
@@ -89,23 +91,39 @@ export default function QuickMenu() {
       className="fixed right-5 top-4/5 z-40 hidden -translate-y-1/2 flex-col items-center lg:flex xl:right-8"
     >
       <div className="flex flex-col gap-4">
-        {quickMenus.map((menu) => (
-          <Link
-            key={menu.label}
-            href={menu.href}
-            aria-label={menu.label}
-            className={buttonClassName}
-          >
+        {quickMenus.map((menu) => {
+          const icon = (
             <Image
               src={menu.icon}
               alt=""
-              width={38}
-              height={38}
+              width={28}
+              height={28}
               aria-hidden="true"
               className={iconClassName}
             />
-          </Link>
-        ))}
+          )
+
+          return menu.isHash ? (
+            <HashLink
+              key={menu.label}
+              href={menu.href}
+              scrollBlock="start"
+              aria-label={menu.label}
+              className={buttonClassName}
+            >
+              {icon}
+            </HashLink>
+          ) : (
+            <Link
+              key={menu.label}
+              href={menu.href}
+              aria-label={menu.label}
+              className={buttonClassName}
+            >
+              {icon}
+            </Link>
+          )
+        })}
 
         <button
           type="button"
@@ -116,8 +134,8 @@ export default function QuickMenu() {
           <Image
             src="/icons/quick-menu/top.svg"
             alt=""
-            width={38}
-            height={38}
+            width={28}
+            height={28}
             aria-hidden="true"
             className={iconClassName}
           />
