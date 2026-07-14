@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/ui/Logo";
+import SectionBadge from "@/components/ui/SectionBadge";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api";
 
@@ -109,38 +110,33 @@ export default function LoginPage() {
     }
   };
 
-  const handleKakaoLogin = () => {
-    // TODO: 카카오 OAuth 연동
-  };
-
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row">
       {/* 좌측 브랜드 패널 */}
       <div className="relative flex w-full flex-col justify-center overflow-hidden bg-[#0b1023] px-8 py-14 sm:px-14 lg:w-1/2 lg:px-20">
         {/* 배경 장식 */}
-        <div className="pointer-events-none absolute -left-32 bottom-[-10%] h-96 w-96 rounded-full bg-indigo-600/20 blur-3xl" />
-        <div className="pointer-events-none absolute right-[-10%] top-[-10%] h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -left-32 bottom-[-10%] h-96 w-96 rounded-full bg-brand-primary/20 blur-3xl" />
+        <div className="pointer-events-none absolute right-[-10%] top-[-10%] h-72 w-72 rounded-full bg-brand-primary-light/10 blur-3xl" />
 
         <div className="relative z-10 flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-primary">
             <Logo className="h-5 w-5 text-white" />
           </div>
           <span className="text-lg font-bold tracking-tight text-white">SmartHR</span>
         </div>
 
         <div className="relative z-10 mt-14 max-w-md">
-          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-400/30 bg-indigo-400/10 px-3 py-1 text-xs font-medium text-indigo-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+          <SectionBadge variant="inverse" className="w-fit">
             차세대 인사관리 플랫폼
-          </span>
+          </SectionBadge>
 
           <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-[2.75rem]">
             직원 관리의 모든 것
             <br />
-            <span className="text-indigo-400">하나로 연결하다</span>
+            <span className="text-brand-primary-light">하나로 연결하다</span>
           </h1>
 
-          <p className="mt-5 text-[15px] leading-relaxed text-slate-400">
+          <p className="mt-5 text-[15px] leading-relaxed text-white/70">
             채용부터 퇴직까지, 복잡한 인사 업무를
             <br />
             자동화하고 더 중요한 일에 집중하세요.
@@ -150,7 +146,7 @@ export default function LoginPage() {
             {STATS.map((stat) => (
               <div key={stat.label}>
                 <div className="text-2xl font-bold text-white">{stat.value}</div>
-                <div className="mt-1 text-xs text-slate-500">{stat.label}</div>
+                <div className="mt-1 text-xs text-white/50">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -162,15 +158,15 @@ export default function LoginPage() {
                 className="group flex items-center justify-between rounded-2xl border border-white/[0.06] bg-white/[0.03] px-5 py-4 transition-colors hover:bg-white/[0.06]"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-primary/15 text-brand-primary-light">
                     {feature.icon}
                   </span>
                   <div>
                     <div className="text-sm font-semibold text-white">{feature.title}</div>
-                    <div className="text-xs text-slate-500">{feature.description}</div>
+                    <div className="text-xs text-white/50">{feature.description}</div>
                   </div>
                 </div>
-                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-slate-600 transition-transform group-hover:translate-x-0.5">
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white/30 transition-transform group-hover:translate-x-0.5">
                   <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
@@ -184,40 +180,40 @@ export default function LoginPage() {
         <div className="w-full max-w-[420px]">
           <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary">
                 <Logo className="h-4 w-4 text-white" />
               </div>
-              <span className="hidden text-sm font-semibold text-slate-900 sm:inline">SmartHR</span>
+              <span className="hidden text-sm font-semibold text-brand-navy sm:inline">SmartHR</span>
             </div>
             <button
               type="button"
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+              className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-primary-dark"
             >
               문의하기
             </button>
           </div>
 
-          <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-[0_8px_30px_rgb(15,23,42,0.06)] sm:p-10">
+          <div className="rounded-3xl border border-brand-border bg-white p-8 shadow-[0_8px_30px_rgb(15,23,42,0.06)] sm:p-10">
             <div className="mb-1 flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-indigo-700">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-primary">
                 <Logo className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="text-xs font-semibold text-slate-500">SmartHR</span>
+              <span className="text-xs font-semibold text-brand-muted">SmartHR</span>
             </div>
 
-            <h2 className="mt-3 text-2xl font-bold text-slate-900">로그인</h2>
-            <p className="mt-1.5 text-sm text-slate-500">계정에 로그인하여 업무를 시작하세요</p>
+            <h2 className="mt-3 text-2xl font-bold text-brand-navy">로그인</h2>
+            <p className="mt-1.5 text-sm text-brand-muted">계정에 로그인하여 업무를 시작하세요</p>
 
             <form className="mt-7 flex flex-col gap-5" onSubmit={handleSubmit} noValidate>
               <div>
-                <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
+                <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-brand-text">
                   이메일
                 </label>
                 <div className="relative">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
-                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400"
+                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-brand-muted"
                   >
                     <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
                     <path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -229,20 +225,20 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="이메일 주소를 입력하세요"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/60 py-3 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-xl border border-brand-border-light bg-brand-soft py-3 pl-10 pr-4 text-sm text-brand-navy placeholder:text-brand-muted outline-none transition-colors focus:border-brand-primary focus:bg-white focus:ring-4 focus:ring-brand-primary/20"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
+                <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-brand-text">
                   비밀번호
                 </label>
                 <div className="relative">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
-                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400"
+                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-brand-muted"
                   >
                     <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.6" />
                     <path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -254,13 +250,13 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="비밀번호를 입력하세요"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/60 py-3 pl-10 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-xl border border-brand-border-light bg-brand-soft py-3 pl-10 pr-11 text-sm text-brand-navy placeholder:text-brand-muted outline-none transition-colors focus:border-brand-primary focus:bg-white focus:ring-4 focus:ring-brand-primary/20"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보이기"}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-primary"
                   >
                     {showPassword ? (
                       <svg viewBox="0 0 24 24" fill="none" className="h-4.5 w-4.5">
@@ -295,16 +291,16 @@ export default function LoginPage() {
               )}
 
               <div className="flex items-center justify-between text-sm">
-                <label className="flex select-none items-center gap-2 text-slate-600">
+                <label className="flex select-none items-center gap-2 text-brand-text">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-4 w-4 rounded border-brand-border-light text-brand-primary focus:ring-brand-primary"
                   />
                   로그인 상태 유지
                 </label>
-                <Link href="/find-password" className="font-medium text-indigo-600 hover:text-indigo-700">
+                <Link href="/find-password" className="font-medium text-brand-primary hover:text-brand-primary-dark">
                   비밀번호 찾기
                 </Link>
               </div>
@@ -312,7 +308,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="mt-1 flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-1 flex items-center justify-center gap-2 rounded-xl bg-brand-primary py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
                   <path
@@ -327,29 +323,9 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="relative my-6 flex items-center">
-              <div className="h-px flex-1 bg-slate-200" />
-              <span className="px-3 text-xs text-slate-400">또는</span>
-              <div className="h-px flex-1 bg-slate-200" />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleKakaoLogin}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FEE500] py-3.5 text-sm font-semibold text-[#191600] transition-colors hover:bg-[#f5dc00]"
-            >
-              <svg viewBox="0 0 24 24" fill="none" className="h-4.5 w-4.5">
-                <path
-                  d="M12 3.5C6.75 3.5 2.5 6.86 2.5 11c0 2.62 1.73 4.93 4.34 6.26-.19.68-.7 2.5-.8 2.9-.13.48.18.48.37.35.15-.1 2.4-1.63 3.38-2.3.4.06.8.09 1.21.09 5.25 0 9.5-3.36 9.5-7.3S17.25 3.5 12 3.5Z"
-                  fill="currentColor"
-                />
-              </svg>
-              카카오 로그인
-            </button>
-
-            <p className="mt-6 text-center text-sm text-slate-500">
+            <p className="mt-6 text-center text-sm text-brand-muted">
               계정이 없으신가요?{" "}
-              <Link href="/signup" className="font-semibold text-indigo-600 hover:text-indigo-700">
+              <Link href="/signup" className="font-semibold text-brand-primary hover:text-brand-primary-dark">
                 회원가입 신청
               </Link>
             </p>
