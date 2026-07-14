@@ -107,6 +107,7 @@ export default function QuickMenu() {
             <HashLink
               key={menu.label}
               href={menu.href}
+              scrollBlock="start"
               aria-label={menu.label}
               className={buttonClassName}
             >

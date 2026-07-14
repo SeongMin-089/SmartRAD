@@ -2,11 +2,11 @@ import Link from "next/link";
 import Container from "@/components/ui/Container";
 import HashLink from "@/components/ui/HashLink";
 
-const navigation: { label: string; href: `#${string}` }[] = [
+const navigation: { label: string; href: `#${string}`; scrollBlock?: ScrollLogicalPosition }[] = [
   { label: "주요 기능", href: "#features" },
   { label: "장점", href: "#benefits" },
   { label: "요금제", href: "#pricing" },
-  { label: "문의", href: "#contact" },
+  { label: "문의", href: "#contact", scrollBlock: "start" },
 ];
 
 export default function Header() {
@@ -32,6 +32,7 @@ export default function Header() {
             <HashLink
               key={item.href}
               href={item.href}
+              scrollBlock={item.scrollBlock}
               className="group text-[15px] font-extrabold tracking-[0]"
             >
               <span className="text-brand-text transition-colors duration-300 ease-out group-hover:text-brand-primary motion-reduce:transition-none">

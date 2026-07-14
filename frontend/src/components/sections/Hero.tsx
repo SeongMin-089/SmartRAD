@@ -56,6 +56,7 @@ export default function Hero() {
             </HashLink>
             <HashLink
               href="#contact"
+              scrollBlock="start"
               className="flex h-[54px] items-center justify-center whitespace-nowrap rounded-full border border-brand-border-light bg-white px-9 text-[15px] font-extrabold transition-colors duration-300 ease-out hover:bg-brand-soft motion-reduce:transition-none"
             >
               <span className="text-brand-blue-text">도입 상담 요청</span>

@@ -54,7 +54,7 @@ export default function Pricing() {
               <ul className="mt-6 space-y-3 text-[14px] font-bold text-brand-text transition-colors duration-300 ease-out group-hover:text-white/85 motion-reduce:transition-none">
                 {plan.features.map((feature) => <li key={feature}>{`✓ ${feature}`}</li>)}
               </ul>
-              <HashLink href="#contact" className="mt-auto flex h-[54px] items-center justify-center rounded-[14px] border border-transparent bg-brand-navy text-[15px] font-extrabold transition-colors duration-300 ease-out group-hover:bg-white motion-reduce:transition-none">
+              <HashLink href="#contact" scrollBlock="start" className="mt-auto flex h-[54px] items-center justify-center rounded-[14px] border border-transparent bg-brand-navy text-[15px] font-extrabold transition-colors duration-300 ease-out group-hover:bg-white motion-reduce:transition-none">
                 <span className="text-white transition-colors duration-300 ease-out group-hover:text-brand-primary motion-reduce:transition-none">
                   {plan.button}
                 </span>

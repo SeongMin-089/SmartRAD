@@ -4,15 +4,18 @@ import { AnchorHTMLAttributes, MouseEvent } from "react";
 
 interface HashLinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
   href: `#${string}`;
+  /** 대상 섹션을 뷰포트의 어디에 맞출지. 기본은 중앙(center).
+   *  섹션 자체에 배경색 구분이 있어 그 경계에 맞춰야 하는 경우 "start"를 사용. */
+  scrollBlock?: ScrollLogicalPosition;
 }
 
-export default function HashLink({ href, onClick, ...props }: HashLinkProps) {
+export default function HashLink({ href, scrollBlock = "center", onClick, ...props }: HashLinkProps) {
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     const target = document.getElementById(href.slice(1));
 
     if (target) {
       e.preventDefault();
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.scrollIntoView({ behavior: "smooth", block: scrollBlock });
       window.history.pushState(null, "", href);
     }
 
