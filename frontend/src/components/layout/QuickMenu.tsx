@@ -21,9 +21,9 @@ const quickMenus = [
 
 const buttonClassName = `
   group
-  flex h-14 w-14
+  flex h-11 w-11
   cursor-pointer items-center justify-center
-  rounded-[18px]
+  rounded-[16px]
   border border-brand-border
   bg-white
   shadow-[0_12px_28px_rgba(50,94,160,0.12)]
@@ -54,12 +54,12 @@ const buttonClassName = `
   motion-reduce:transform-none
   motion-reduce:transition-none
 
-  xl:h-16
-  xl:w-16
+  xl:h-[52px]
+  xl:w-[52px]
 `
 
 const iconClassName = `
-  h-6 w-6
+  h-5 w-5
   object-contain
   transition-[filter] duration-300 ease-out
 
@@ -74,7 +74,7 @@ const iconClassName = `
 
   motion-reduce:transition-none
 
-  xl:h-7 xl:w-7
+  xl:h-6 xl:w-6
 `
 
 export default function QuickMenu() {
@@ -96,8 +96,8 @@ export default function QuickMenu() {
             <Image
               src={menu.icon}
               alt=""
-              width={28}
-              height={28}
+              width={22}
+              height={22}
               aria-hidden="true"
               className={iconClassName}
             />
@@ -134,8 +134,8 @@ export default function QuickMenu() {
           <Image
             src="/icons/quick-menu/top.svg"
             alt=""
-            width={28}
-            height={28}
+            width={22}
+            height={22}
             aria-hidden="true"
             className={iconClassName}
           />

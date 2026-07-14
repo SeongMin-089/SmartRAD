@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Container from "@/components/ui/Container";
 import Logo from "@/components/ui/Logo";
@@ -11,11 +13,16 @@ const navigation: { label: string; href: `#${string}`; scrollBlock?: ScrollLogic
 ];
 
 export default function Header() {
+  const handleLogoClick = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <header className="sticky top-0 z-50 h-[84px] w-full bg-white shadow-[0_1px_0_rgba(16,42,80,0.06)]">
       <Container className="flex h-full items-center justify-between">
         <Link
           href="/"
+          onClick={handleLogoClick}
           className="flex items-center gap-3"
           aria-label="SmartHR 홈"
         >

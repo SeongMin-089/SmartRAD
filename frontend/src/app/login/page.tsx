@@ -118,12 +118,12 @@ export default function LoginPage() {
         <div className="pointer-events-none absolute -left-32 bottom-[-10%] h-96 w-96 rounded-full bg-brand-primary/20 blur-3xl" />
         <div className="pointer-events-none absolute right-[-10%] top-[-10%] h-72 w-72 rounded-full bg-brand-primary-light/10 blur-3xl" />
 
-        <div className="relative z-10 flex items-center gap-2">
+        <Link href="/" className="relative z-10 flex w-fit items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-primary">
             <Logo className="h-5 w-5 text-white" />
           </div>
           <span className="text-lg font-bold tracking-tight text-white">SmartHR</span>
-        </div>
+        </Link>
 
         <div className="relative z-10 mt-14 max-w-md">
           <SectionBadge variant="inverse" className="w-fit">
@@ -179,12 +179,12 @@ export default function LoginPage() {
       <div className="flex w-full flex-1 items-center justify-center bg-white px-6 py-14 lg:w-1/2">
         <div className="w-full max-w-[420px]">
           <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary">
                 <Logo className="h-4 w-4 text-white" />
               </div>
               <span className="hidden text-sm font-semibold text-brand-navy sm:inline">SmartHR</span>
-            </div>
+            </Link>
             <button
               type="button"
               className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-primary-dark"
