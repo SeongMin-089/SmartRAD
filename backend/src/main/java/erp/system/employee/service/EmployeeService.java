@@ -4,6 +4,7 @@ import erp.system.common.exception.BusinessException;
 import erp.system.common.exception.ErrorCode;
 import erp.system.department.entity.Department;
 import erp.system.department.repository.DepartmentRepository;
+import erp.system.employee.dto.EmployeeBaseSalaryUpdateRequest;
 import erp.system.employee.dto.EmployeeCreateRequest;
 import erp.system.employee.dto.EmployeeResponse;
 import erp.system.employee.dto.EmployeeSummaryResponse;
@@ -12,6 +13,7 @@ import erp.system.employee.entity.Employee;
 import erp.system.employee.repository.EmployeeRepository;
 import erp.system.employmenttype.entity.EmploymentType;
 import erp.system.employmenttype.repository.EmploymentTypeRepository;
+import erp.system.leave.service.EmployeeLeaveBalanceService;
 import erp.system.position.entity.Position;
 import erp.system.position.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,22 +34,30 @@ public class EmployeeService {
     private final PositionRepository positionRepository;
     private final EmploymentTypeRepository employmentTypeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmployeeLeaveBalanceService employeeLeaveBalanceService;
 
     public EmployeeResponse getById(Long employeeId){
         return EmployeeResponse.from(findActive(employeeId));
     }
 
-    public Page<EmployeeSummaryResponse> getList(String keyword, Pageable pageable) {
+    public Page<EmployeeSummaryResponse> getList(String keyword, Long departmentId, String status, Pageable pageable) {
         Specification<Employee> spec = (root, query, cb) -> {
-            if (!StringUtils.hasText(keyword)) {
-                return cb.conjunction();
+            var predicate = cb.conjunction();
+            if (StringUtils.hasText(keyword)) {
+                String pattern = "%" + keyword + "%";
+                predicate = cb.and(predicate, cb.or(
+                        cb.like(root.get("name"), pattern),
+                        cb.like(root.get("employeeNo"), pattern),
+                        cb.like(root.get("email"), pattern)
+                ));
             }
-            String pattern = "%" + keyword + "%";
-            return cb.or(
-                    cb.like(root.get("name"), pattern),
-                    cb.like(root.get("employeeNo"), pattern),
-                    cb.like(root.get("email"), pattern)
-            );
+            if (departmentId != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("department").get("departmentId"), departmentId));
+            }
+            if (StringUtils.hasText(status)) {
+                predicate = cb.and(predicate, cb.equal(root.get("employeeStatusCode"), status));
+            }
+            return predicate;
         };
 
         return employeeRepository.findAll(spec, pageable).map(EmployeeSummaryResponse::from);
@@ -79,7 +89,10 @@ public class EmployeeService {
                 .password(passwordEncoder.encode(request.password()))
                 .build();
 
-        return EmployeeResponse.from(employeeRepository.save(employee));
+        Employee savedEmployee = employeeRepository.save(employee);
+        employeeLeaveBalanceService.grantDefaultAnnualLeave(savedEmployee);
+
+        return EmployeeResponse.from(savedEmployee);
     }
 
     @Transactional
@@ -101,6 +114,19 @@ public class EmployeeService {
                 request.accountHolder()
         );
 
+        return EmployeeResponse.from(employee);
+    }
+
+    @Transactional
+    public void delete(Long employeeId) {
+        Employee employee = findActive(employeeId);
+        employee.markDeleted();
+    }
+
+    @Transactional
+    public EmployeeResponse updateBaseSalary(Long employeeId, EmployeeBaseSalaryUpdateRequest request) {
+        Employee employee = findActive(employeeId);
+        employee.updateBaseSalary(request.baseSalary());
         return EmployeeResponse.from(employee);
     }
 

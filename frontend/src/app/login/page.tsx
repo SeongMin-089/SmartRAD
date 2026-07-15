@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Logo from "@/components/ui/Logo";
 import SectionBadge from "@/components/ui/SectionBadge";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081/api";
 
 interface LoginResponse {
   accessToken: string;
@@ -14,6 +14,7 @@ interface LoginResponse {
   employeeId: number;
   employeeNo: string;
   name: string;
+  email: string;
 }
 
 interface ErrorResponse {
@@ -101,6 +102,7 @@ export default function LoginPage() {
       const storage = rememberMe ? window.localStorage : window.sessionStorage;
       storage.setItem("accessToken", data.accessToken);
       storage.setItem("employeeName", data.name);
+      storage.setItem("employeeEmail", data.email);
 
       router.push("/dashboard");
     } catch (err) {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon, XMarkIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081/api";
 
@@ -33,6 +34,10 @@ interface EmployeeListProps {
 }
 
 export default function EmployeeList({ onSelectEmployee, selectedId }: EmployeeListProps) {
+  refreshKey?: number;
+}
+
+export default function EmployeeList({ onSelectEmployee, selectedId, refreshKey }: EmployeeListProps) {
   const [data, setData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -40,6 +45,9 @@ export default function EmployeeList({ onSelectEmployee, selectedId }: EmployeeL
   const [departments, setDepartments] = useState<any[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [searchInput, setSearchInput] = useState("");
+  const [keyword, setKeyword] = useState("");
 
   useEffect(() => {
     fetchDepartments();
@@ -48,6 +56,27 @@ export default function EmployeeList({ onSelectEmployee, selectedId }: EmployeeL
   useEffect(() => {
     fetchEmployees();
   }, [page, selectedDepartment, selectedStatus]);
+  }, [page, selectedDepartment, selectedStatus, sortBy, keyword, refreshKey]);
+
+  const runSearch = () => {
+    setPage(0);
+    setKeyword(searchInput.trim());
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
+    setKeyword("");
+    setPage(0);
+  };
+
+  const resetFilters = () => {
+    setSearchInput("");
+    setKeyword("");
+    setSortBy("name");
+    setSelectedDepartment("");
+    setSelectedStatus("");
+    setPage(0);
+  };
 
   const fetchDepartments = async () => {
     try {
@@ -66,6 +95,15 @@ export default function EmployeeList({ onSelectEmployee, selectedId }: EmployeeL
       let url = `${API_BASE_URL}/employees?page=${page}&size=5`;
       if (selectedDepartment) url += `&departmentId=${selectedDepartment}`;
       if (selectedStatus) url += `&status=${selectedStatus}`;
+  const sortParam = sortBy === "position" ? "position.level,desc" : "name,asc";
+
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      let url = `${API_BASE_URL}/employees?page=${page}&size=5&sort=${sortParam}`;
+      if (selectedDepartment) url += `&departmentId=${selectedDepartment}`;
+      if (selectedStatus) url += `&status=${selectedStatus}`;
+      if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
       const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
@@ -114,6 +152,8 @@ export default function EmployeeList({ onSelectEmployee, selectedId }: EmployeeL
 
   const isAllChecked = data && data.content.length > 0 && checkedIds.length === data.content.length;
 
+  const hasActiveFilters = sortBy !== "name" || selectedDepartment !== "" || selectedStatus !== "" || keyword !== "";
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-full">
       <div className="p-5 border-b border-gray-100 flex items-center justify-between">
@@ -137,6 +177,45 @@ export default function EmployeeList({ onSelectEmployee, selectedId }: EmployeeL
         <select 
           value={selectedDepartment} 
           onChange={(e) => { setSelectedDepartment(e.target.value); setPage(0); }} 
+          <button
+            onClick={runSearch}
+            aria-label="검색"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500"
+          >
+            <MagnifyingGlassIcon className="w-5 h-5" />
+          </button>
+          <input
+            type="text"
+            placeholder="검색..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") runSearch(); }}
+            className="pl-9 pr-9 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all w-64"
+          />
+          {searchInput && (
+            <button
+              onClick={clearSearch}
+              aria-label="검색어 지우기"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <XMarkIcon className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="p-4 flex items-center gap-2">
+        <select
+          value={sortBy}
+          onChange={(e) => { setSortBy(e.target.value); setPage(0); }}
+          className="border border-gray-200 rounded-lg text-sm px-3 py-1.5 text-gray-600 bg-white hover:bg-gray-50 cursor-pointer outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="name">이름순</option>
+          <option value="position">직급순</option>
+        </select>
+        <select
+          value={selectedDepartment}
+          onChange={(e) => { setSelectedDepartment(e.target.value); setPage(0); }}
           className="border border-gray-200 rounded-lg text-sm px-3 py-1.5 text-gray-600 bg-white hover:bg-gray-50 cursor-pointer outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">부서 전체</option>
@@ -145,6 +224,9 @@ export default function EmployeeList({ onSelectEmployee, selectedId }: EmployeeL
         <select 
           value={selectedStatus} 
           onChange={(e) => { setSelectedStatus(e.target.value); setPage(0); }} 
+        <select
+          value={selectedStatus}
+          onChange={(e) => { setSelectedStatus(e.target.value); setPage(0); }}
           className="border border-gray-200 rounded-lg text-sm px-3 py-1.5 text-gray-600 bg-white hover:bg-gray-50 cursor-pointer outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">재직 상태 전체</option>
@@ -152,6 +234,17 @@ export default function EmployeeList({ onSelectEmployee, selectedId }: EmployeeL
           <option value="LEAVE">휴직</option>
           <option value="RESIGNED">퇴사</option>
         </select>
+        <button
+          onClick={resetFilters}
+          title="검색/필터 초기화"
+          className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${
+            hasActiveFilters
+              ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600"
+              : "border-gray-200 text-gray-500 bg-white hover:bg-gray-50"
+          }`}
+        >
+          <ArrowPathIcon className="w-4 h-4" />
+        </button>
       </div>
 
       <div className="flex-1 overflow-x-auto">

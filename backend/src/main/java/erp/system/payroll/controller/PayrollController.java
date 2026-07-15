@@ -1,0 +1,46 @@
+package erp.system.payroll.controller;
+
+import erp.system.payroll.dto.PayrollCalculateRequest;
+import erp.system.payroll.dto.PayrollDetailedResponse;
+import erp.system.payroll.dto.PayrollResponse;
+import erp.system.payroll.service.PayrollService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.YearMonth;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/payrolls")
+@RequiredArgsConstructor
+public class PayrollController {
+
+    private final PayrollService payrollService;
+
+    @GetMapping
+    public List<PayrollResponse> getList(
+            @RequestParam(required = false) Long employeeId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth payrollYearMonth
+    ) {
+        return payrollService.getList(employeeId, payrollYearMonth);
+    }
+
+    @GetMapping("/{id}")
+    public PayrollDetailedResponse getDetail(@PathVariable Long id) {
+        return payrollService.getDetail(id);
+    }
+
+    @PostMapping("/calculate")
+    public ResponseEntity<PayrollDetailedResponse> calculate(@Valid @RequestBody PayrollCalculateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(payrollService.calculate(request));
+    }
+
+    @PatchMapping("/{id}/pay")
+    public PayrollResponse pay(@PathVariable Long id) {
+        return payrollService.pay(id);
+    }
+}

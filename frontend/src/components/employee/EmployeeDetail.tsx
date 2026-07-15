@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { UserIcon, PencilSquareIcon, TrashIcon, ClockIcon, CurrencyDollarIcon, DocumentTextIcon, BuildingOfficeIcon, BriefcaseIcon, IdentificationIcon } from "@heroicons/react/24/outline";
+import { getEmployeeStatusLabel, getEmployeeStatusBadgeClasses } from "@/lib/employeeStatus";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081/api";
 
@@ -23,6 +24,36 @@ interface EmployeeDetailData {
 
 export default function EmployeeDetail({ employeeId, onEditClick, onDeleteClick }: { employeeId: number | null, onEditClick?: (data: EmployeeDetailData) => void, onDeleteClick?: (id: number) => void }) {
   const [data, setData] = useState<EmployeeDetailData | null>(null);
+interface LeaveBalance {
+  leaveTypeName: string;
+  remainDays: number;
+}
+
+function formatTenure(hireDate: string | null) {
+  if (!hireDate) return "-";
+  const hire = new Date(hireDate);
+  if (Number.isNaN(hire.getTime())) return "-";
+
+  const now = new Date();
+  let years = now.getFullYear() - hire.getFullYear();
+  let months = now.getMonth() - hire.getMonth();
+  if (now.getDate() < hire.getDate()) months -= 1;
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+  if (years < 0) return "-";
+
+  return `${years}년 ${months}개월`;
+}
+
+function formatDays(days: number) {
+  return Number.isInteger(days) ? `${days}일` : `${days.toFixed(1)}일`;
+}
+
+export default function EmployeeDetail({ employeeId, onEditClick, onDeleteClick, refreshKey }: { employeeId: number | null, onEditClick?: (data: EmployeeDetailData) => void, onDeleteClick?: (id: number) => void, refreshKey?: number }) {
+  const [data, setData] = useState<EmployeeDetailData | null>(null);
+  const [annualLeaveDays, setAnnualLeaveDays] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,6 +63,12 @@ export default function EmployeeDetail({ employeeId, onEditClick, onDeleteClick 
       setData(null);
     }
   }, [employeeId]);
+      fetchLeaveBalance();
+    } else {
+      setData(null);
+      setAnnualLeaveDays(null);
+    }
+  }, [employeeId, refreshKey]);
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -45,6 +82,22 @@ export default function EmployeeDetail({ employeeId, onEditClick, onDeleteClick 
       console.error("Failed to fetch detail", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLeaveBalance = async () => {
+    try {
+      const token = window.localStorage.getItem("accessToken") ?? window.sessionStorage.getItem("accessToken");
+      const res = await fetch(`${API_BASE_URL}/leave-balances?employeeId=${employeeId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const balances: LeaveBalance[] = await res.json();
+        const annual = balances.find((b) => b.leaveTypeName === "연차");
+        setAnnualLeaveDays(annual ? annual.remainDays : null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch leave balance", error);
     }
   };
 
@@ -98,6 +151,8 @@ export default function EmployeeDetail({ employeeId, onEditClick, onDeleteClick 
                 <h3 className="text-2xl font-bold text-gray-900">{data.name}</h3>
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white border ${data.employeeStatusCode === 'ACTIVE' ? 'border-emerald-200 text-emerald-600 before:bg-emerald-500' : 'border-gray-200 text-gray-600 before:bg-gray-400'} before:content-[''] before:block before:w-1.5 before:h-1.5 before:rounded-full`}>
                   {data.employeeStatusCode === 'ACTIVE' ? '재직중' : data.employeeStatusCode}
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white border ${getEmployeeStatusBadgeClasses(data.employeeStatusCode)} before:content-[''] before:block before:w-1.5 before:h-1.5 before:rounded-full`}>
+                  {getEmployeeStatusLabel(data.employeeStatusCode)}
                 </span>
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-500 font-medium">
@@ -116,6 +171,12 @@ export default function EmployeeDetail({ employeeId, onEditClick, onDeleteClick 
              <div className="text-sm font-bold text-emerald-600 bg-white px-3 py-1.5 rounded-md shadow-sm border border-emerald-50 mt-2">
                 <span className="text-emerald-500 font-medium mr-2">잔여 연차</span> 
                 {/* Dummy leave */} 12일
+                <span className="text-gray-500 font-medium mr-2">근속 기간</span>
+                {formatTenure(data.hireDate)}
+             </div>
+             <div className="text-sm font-bold text-emerald-600 bg-white px-3 py-1.5 rounded-md shadow-sm border border-emerald-50 mt-2">
+                <span className="text-emerald-500 font-medium mr-2">잔여 연차</span>
+                {annualLeaveDays !== null ? formatDays(annualLeaveDays) : "-"}
              </div>
           </div>
         </div>
