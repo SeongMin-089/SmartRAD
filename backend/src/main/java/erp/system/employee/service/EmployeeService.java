@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Year;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -65,14 +67,15 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeResponse create(EmployeeCreateRequest request){
-        if(employeeRepository.existsByEmployeeNo(request.employeeNo())){
+        String employeeNo = StringUtils.hasText(request.employeeNo()) ? request.employeeNo() : generateEmployeeNo();
+        if(employeeRepository.existsByEmployeeNo(employeeNo)){
             throw new BusinessException(ErrorCode.DUPLICATE_EMPLOYEE_NO);
         }
         if (request.email() != null && employeeRepository.existsByEmail(request.email())) {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         Employee employee = Employee.builder()
-                .employeeNo(request.employeeNo())
+                .employeeNo(employeeNo)
                 .department(resolveDepartment(request.departmentId()))
                 .position(resolvePosition(request.positionId()))
                 .employmentType(resolveEmploymentType(request.employmentTypeId()))
@@ -128,6 +131,13 @@ public class EmployeeService {
         Employee employee = findActive(employeeId);
         employee.updateBaseSalary(request.baseSalary());
         return EmployeeResponse.from(employee);
+    }
+
+    private String generateEmployeeNo() {
+        String year = String.valueOf(Year.now().getValue());
+        Integer maxSequence = employeeRepository.findMaxEmployeeNoSequence(year);
+        int nextSequence = (maxSequence == null ? 0 : maxSequence) + 1;
+        return "E" + year + String.format("%03d", nextSequence);
     }
 
     private Employee findActive(Long employeeId) {

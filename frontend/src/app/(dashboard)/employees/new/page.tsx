@@ -1,6 +1,9 @@
 "use client";
 
-import { type ChangeEvent, useState } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081/api";
 
 type Option = {
   label: string;
@@ -77,24 +80,6 @@ const Card = ({ title, badge, children }: { title: string; badge?: string; child
   </section>
 );
 
-const departments: Option[] = [
-  { label: "인사팀", value: "hr" },
-  { label: "디자인팀", value: "design" },
-  { label: "개발팀", value: "development" },
-  { label: "기획팀", value: "planning" },
-  { label: "마케팅팀", value: "marketing" },
-  { label: "영업팀", value: "sales" },
-];
-
-const positions: Option[] = [
-  { label: "사원", value: "staff" },
-  { label: "주임", value: "associate" },
-  { label: "대리", value: "assistant-manager" },
-  { label: "과장", value: "manager" },
-  { label: "차장", value: "deputy-general-manager" },
-  { label: "부장", value: "general-manager" },
-];
-
 const existingEmployees: Option[] = [
   { label: "김서연 (인사팀 팀장)", value: "emp-hr-001" },
   { label: "이도현 (디자인팀 팀장)", value: "emp-design-001" },
@@ -113,17 +98,86 @@ const emptyEmployee = {
   department: "",
   position: "",
   manager: "",
+  hireDate: "",
 };
 
 export default function NewEmployeePage() {
+  const router = useRouter();
   const [employee, setEmployee] = useState(emptyEmployee);
+  const [departments, setDepartments] = useState<Option[]>([]);
+  const [positions, setPositions] = useState<Option[]>([]);
   const [profileImage, setProfileImage] = useState<{ name: string; preview: string } | null>(null);
   const [attachedDocuments, setAttachedDocuments] = useState<{ id: string; name: string; size: string }[]>([]);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const token = window.localStorage.getItem("accessToken") ?? window.sessionStorage.getItem("accessToken");
+        const authHeaders: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+        const [departmentsRes, positionsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/departments`),
+          fetch(`${API_BASE_URL}/positions`, { headers: authHeaders }),
+        ]);
+        if (departmentsRes.ok) {
+          const data = await departmentsRes.json();
+          setDepartments(data.map((d: { departmentId: number; departmentName: string }) => ({ label: d.departmentName, value: String(d.departmentId) })));
+        }
+        if (positionsRes.ok) {
+          const data = await positionsRes.json();
+          setPositions(data.map((p: { positionId: number; positionName: string }) => ({ label: p.positionName, value: String(p.positionId) })));
+        }
+      } catch (err) {
+        console.error("Failed to fetch department/position options", err);
+      }
+    };
+
+    fetchOptions();
+  }, []);
 
   const updateEmployee = (field: keyof typeof emptyEmployee) => (value: string) => {
     setEmployee((currentEmployee) => ({ ...currentEmployee, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!employee.name || !employee.birthDate || !employee.gender || !employee.phone || !employee.email || !employee.department || !employee.position) {
+      setError("필수 항목을 모두 입력해주세요.");
+      return;
+    }
+
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/employees`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          departmentId: Number(employee.department),
+          positionId: Number(employee.position),
+          name: employee.name,
+          birthDate: employee.birthDate,
+          phone: employee.phone,
+          email: employee.email,
+          hireDate: employee.hireDate || null,
+          password: employee.birthDate.replaceAll("-", ""),
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.message || "등록에 실패했습니다.");
+      }
+
+      alert("직원이 등록되었습니다.\n초기 비밀번호는 생년월일 8자리입니다.");
+      router.push("/employees");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "등록 중 오류가 발생했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -237,7 +291,7 @@ export default function NewEmployeePage() {
                 <Select label="부서" name="department" value={employee.department} onChange={updateEmployee("department")} options={departments} placeholder="부서를 선택하세요" required />
                 <Select label="직급" name="position" value={employee.position} onChange={updateEmployee("position")} options={positions} placeholder="직급을 선택하세요" required />
                 <Select label="직속 관리자" name="manager" value={employee.manager} onChange={updateEmployee("manager")} options={existingEmployees} placeholder="DB 등록 직원을 선택하세요" />
-                <Input label="입사일" name="hireDate" value="" onChange={() => undefined} placeholder="YYYY-MM-DD" type="date" />
+                <Input label="입사일" name="hireDate" value={employee.hireDate} onChange={updateEmployee("hireDate")} placeholder="YYYY-MM-DD" type="date" />
               </div>
             </Card>
           </div>
@@ -289,13 +343,17 @@ export default function NewEmployeePage() {
         </div>
 
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-6 py-4">
-          <p className="text-xs text-slate-400">ⓘ * 표시 항목은 모두 입력해야 저장이 가능합니다.</p>
+          <p className="text-xs text-slate-400">
+            {error ? <span className="font-bold text-rose-500">{error}</span> : "ⓘ * 표시 항목은 모두 입력해야 저장이 가능합니다."}
+          </p>
           <div className="flex gap-3">
-            <button className="h-10 rounded-lg border border-slate-200 px-5 text-sm">취소</button>
+            <button type="button" onClick={() => router.push("/employees")} className="h-10 rounded-lg border border-slate-200 px-5 text-sm">취소</button>
             <button type="button" onClick={resetForm} className="h-10 rounded-lg border border-orange-200 bg-orange-50 px-5 text-sm font-bold text-orange-500">
               초기화
             </button>
-            <button className="h-10 rounded-lg bg-indigo-600 px-7 text-sm font-bold text-white">✓ 저장하기</button>
+            <button type="button" onClick={handleSave} disabled={isSubmitting} className="h-10 rounded-lg bg-indigo-600 px-7 text-sm font-bold text-white disabled:opacity-50">
+              {isSubmitting ? "저장 중..." : "✓ 저장하기"}
+            </button>
           </div>
         </div>
       </div>
