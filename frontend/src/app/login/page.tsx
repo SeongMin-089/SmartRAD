@@ -14,6 +14,7 @@ interface LoginResponse {
   employeeId: number;
   employeeNo: string;
   name: string;
+  email: string;
 }
 
 interface ErrorResponse {
@@ -101,6 +102,7 @@ export default function LoginPage() {
       const storage = rememberMe ? window.localStorage : window.sessionStorage;
       storage.setItem("accessToken", data.accessToken);
       storage.setItem("employeeName", data.name);
+      storage.setItem("employeeEmail", data.email);
 
       router.push("/dashboard");
     } catch (err) {

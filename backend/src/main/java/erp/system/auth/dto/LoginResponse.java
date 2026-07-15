@@ -7,7 +7,8 @@ public record LoginResponse(
         String tokenType,
         Long employeeId,
         String employeeNo,
-        String name
+        String name,
+        String email
 ) {
     public static LoginResponse of(String accessToken, Employee employee) {
         return new LoginResponse(
@@ -15,7 +16,8 @@ public record LoginResponse(
                 "Bearer",
                 employee.getEmployeeId(),
                 employee.getEmployeeNo(),
-                employee.getName()
+                employee.getName(),
+                employee.getEmail()
         );
     }
 }
