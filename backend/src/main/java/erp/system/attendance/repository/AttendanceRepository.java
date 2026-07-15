@@ -27,4 +27,11 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             ORDER BY a.employee.employeeId
             """)
     List<AttendanceMonthlySummaryResponse> summarizeMonthly(@Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("""
+            SELECT COALESCE(SUM(a.overtimeMinutes), 0)
+            FROM Attendance a
+            WHERE a.employee.employeeId = :employeeId AND a.workDate BETWEEN :start AND :end
+            """)
+    Integer sumOvertimeMinutes(@Param("employeeId") Long employeeId, @Param("start") LocalDate start, @Param("end") LocalDate end);
 }

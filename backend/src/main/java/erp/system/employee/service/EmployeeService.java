@@ -4,6 +4,7 @@ import erp.system.common.exception.BusinessException;
 import erp.system.common.exception.ErrorCode;
 import erp.system.department.entity.Department;
 import erp.system.department.repository.DepartmentRepository;
+import erp.system.employee.dto.EmployeeBaseSalaryUpdateRequest;
 import erp.system.employee.dto.EmployeeCreateRequest;
 import erp.system.employee.dto.EmployeeResponse;
 import erp.system.employee.dto.EmployeeSummaryResponse;
@@ -101,6 +102,13 @@ public class EmployeeService {
                 request.accountHolder()
         );
 
+        return EmployeeResponse.from(employee);
+    }
+
+    @Transactional
+    public EmployeeResponse updateBaseSalary(Long employeeId, EmployeeBaseSalaryUpdateRequest request) {
+        Employee employee = findActive(employeeId);
+        employee.updateBaseSalary(request.baseSalary());
         return EmployeeResponse.from(employee);
     }
 
