@@ -12,6 +12,7 @@ interface EmployeeDetailData {
   name: string;
   email: string;
   phone: string;
+  address: string | null;
   hireDate: string;
   employeeStatusCode: string;
   departmentId: number | null;
@@ -193,6 +194,10 @@ export default function EmployeeDetail({ employeeId, onEditClick, onDeleteClick,
               <div className="flex justify-between">
                 <span className="text-gray-500 font-medium">입사일</span>
                 <span className="text-gray-900 font-medium">{data.hireDate ? data.hireDate.substring(0, 10) : '-'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 font-medium">주소</span>
+                <span className="text-gray-900 font-medium text-right">{data.address || '-'}</span>
               </div>
             </div>
           </div>

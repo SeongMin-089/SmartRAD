@@ -85,6 +85,7 @@ const emptyEmployee = {
   birthDate: "",
   phone: "",
   email: "",
+  address: "",
   gender: "",
   department: "",
   position: "",
@@ -164,6 +165,7 @@ export default function NewEmployeePage() {
           birthDate: employee.birthDate,
           phone: employee.phone,
           email: employee.email,
+          address: employee.address || null,
           hireDate: employee.hireDate || null,
           password: employee.birthDate.replaceAll("-", ""),
           profileImage: profileImage?.preview ?? null,
@@ -287,6 +289,9 @@ export default function NewEmployeePage() {
                 </div>
                 <Input label="연락처" name="phone" value={employee.phone} onChange={updateEmployee("phone")} required placeholder="010-0000-0000" type="tel" />
                 <Input label="이메일" name="email" value={employee.email} onChange={updateEmployee("email")} required placeholder="email@example.com" type="email" />
+                <div className="md:col-span-2">
+                  <Input label="주소" name="address" value={employee.address} onChange={updateEmployee("address")} placeholder="주소를 입력하세요" />
+                </div>
               </div>
             </Card>
 
