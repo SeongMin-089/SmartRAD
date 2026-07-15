@@ -2,6 +2,7 @@ package erp.system.employee.dto;
 
 import erp.system.employee.entity.Employee;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -25,6 +26,7 @@ public record EmployeeResponse (
         String bankName,
         String accountNumber,
         String accountHolder,
+        BigDecimal baseSalary,
         boolean active,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -50,6 +52,7 @@ public record EmployeeResponse (
                 employee.getBankName(),
                 employee.getAccountNumber(),
                 employee.getAccountHolder(),
+                employee.getBaseSalary(),
                 employee.isActive(),
                 employee.getCreatedAt(),
                 employee.getUpdatedAt()

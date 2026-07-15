@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -73,6 +74,9 @@ public class Employee extends BaseEntity {
     @Column(name = "account_holder", length = 100)
     private String accountHolder;
 
+    @Column(name = "base_salary", precision = 12, scale = 0)
+    private BigDecimal baseSalary;
+
     @Column(name = "password", nullable = false, length = 100)
     private String password;
 
@@ -120,6 +124,10 @@ public class Employee extends BaseEntity {
 
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
+    }
+
+    public void updateBaseSalary(BigDecimal baseSalary) {
+        this.baseSalary = baseSalary;
     }
 
     public boolean isLoginable() {

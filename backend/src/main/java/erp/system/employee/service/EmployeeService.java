@@ -4,6 +4,7 @@ import erp.system.common.exception.BusinessException;
 import erp.system.common.exception.ErrorCode;
 import erp.system.department.entity.Department;
 import erp.system.department.repository.DepartmentRepository;
+import erp.system.employee.dto.EmployeeBaseSalaryUpdateRequest;
 import erp.system.employee.dto.EmployeeCreateRequest;
 import erp.system.employee.dto.EmployeeResponse;
 import erp.system.employee.dto.EmployeeSummaryResponse;
@@ -115,6 +116,10 @@ public class EmployeeService {
     public void delete(Long employeeId) {
         Employee employee = findActive(employeeId);
         employeeRepository.delete(employee);
+    public EmployeeResponse updateBaseSalary(Long employeeId, EmployeeBaseSalaryUpdateRequest request) {
+        Employee employee = findActive(employeeId);
+        employee.updateBaseSalary(request.baseSalary());
+        return EmployeeResponse.from(employee);
     }
 
     private Employee findActive(Long employeeId) {

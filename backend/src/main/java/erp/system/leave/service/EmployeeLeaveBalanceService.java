@@ -1,0 +1,50 @@
+package erp.system.leave.service;
+
+import erp.system.common.exception.BusinessException;
+import erp.system.common.exception.ErrorCode;
+import erp.system.employee.entity.Employee;
+import erp.system.employee.repository.EmployeeRepository;
+import erp.system.leave.dto.EmployeeLeaveBalanceGrantRequest;
+import erp.system.leave.dto.EmployeeLeaveBalanceResponse;
+import erp.system.leave.entity.EmployeeLeaveBalance;
+import erp.system.leave.entity.LeaveType;
+import erp.system.leave.repository.EmployeeLeaveBalanceRepository;
+import erp.system.leave.repository.LeaveTypeRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class EmployeeLeaveBalanceService {
+
+    private final EmployeeLeaveBalanceRepository employeeLeaveBalanceRepository;
+    private final EmployeeRepository employeeRepository;
+    private final LeaveTypeRepository leaveTypeRepository;
+
+    public List<EmployeeLeaveBalanceResponse> getByEmployee(Long employeeId) {
+        return employeeLeaveBalanceRepository.findAllByEmployee_EmployeeId(employeeId).stream()
+                .map(EmployeeLeaveBalanceResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public EmployeeLeaveBalanceResponse grant(EmployeeLeaveBalanceGrantRequest request) {
+        Employee employee = employeeRepository.findById(request.employeeId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        LeaveType leaveType = leaveTypeRepository.findById(request.leaveTypeId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.LEAVE_TYPE_NOT_FOUND));
+
+        EmployeeLeaveBalance balance = EmployeeLeaveBalance.builder()
+                .employee(employee)
+                .leaveType(leaveType)
+                .totalDays(request.totalDays())
+                .expireDate(request.expireDate())
+                .build();
+
+        return EmployeeLeaveBalanceResponse.from(employeeLeaveBalanceRepository.save(balance));
+    }
+}
