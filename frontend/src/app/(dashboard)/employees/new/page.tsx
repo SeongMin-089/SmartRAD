@@ -145,7 +145,7 @@ export default function NewEmployeePage() {
   };
 
   const handleSave = async () => {
-    if (!employee.name || !employee.birthDate || !employee.gender || !employee.phone || !employee.email || !employee.department || !employee.position) {
+    if (!employee.name || !employee.birthDate || !employee.gender || !employee.phone || !employee.email || !employee.address || !employee.department || !employee.position) {
       setError("필수 항목을 모두 입력해주세요.");
       return;
     }
@@ -274,7 +274,7 @@ export default function NewEmployeePage() {
                 <Input label="연락처" name="phone" value={employee.phone} onChange={updateEmployee("phone")} required placeholder="010-0000-0000" type="tel" />
                 <Input label="이메일" name="email" value={employee.email} onChange={updateEmployee("email")} required placeholder="email@example.com" type="email" />
                 <div className="md:col-span-2">
-                  <Input label="주소" name="address" value={employee.address} onChange={updateEmployee("address")} placeholder="주소를 입력하세요" />
+                  <Input label="주소" name="address" value={employee.address} onChange={updateEmployee("address")} required placeholder="주소를 입력하세요" />
                 </div>
               </div>
             </Card>
