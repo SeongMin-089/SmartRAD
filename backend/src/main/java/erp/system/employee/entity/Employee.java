@@ -1,6 +1,9 @@
 package erp.system.employee.entity;
 
 import erp.system.common.entity.BaseEntity;
+import erp.system.department.entity.Department;
+import erp.system.employmenttype.entity.EmploymentType;
+import erp.system.position.entity.Position;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -25,17 +28,17 @@ public class Employee extends BaseEntity {
     @Column(name = "employee_no", nullable = false, length = 30, unique = true)
     private String employeeNo;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "department_id")
-//    private Department department;
-//
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "position_id")
-//    private Position position;
-//
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "employment_type_id")
-//    private EmploymentType employmentType;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_id")
+    private Position position;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employment_type_id")
+    private EmploymentType employmentType;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -75,9 +78,13 @@ public class Employee extends BaseEntity {
 
 
     @Builder
-    public Employee(String employeeNo, String name, LocalDate birthDate, String phone, String email, String address, LocalDate hireDate,
+    public Employee(String employeeNo, Department department, Position position, EmploymentType employmentType,
+                    String name, LocalDate birthDate, String phone, String email, String address, LocalDate hireDate,
                     String employeeStatusCode, String bankName, String accountNumber, String accountHolder, String password) {
         this.employeeNo = employeeNo;
+        this.department = department;
+        this.position = position;
+        this.employmentType = employmentType;
         this.name = name;
         this.birthDate = birthDate;
         this.phone = phone;
@@ -92,11 +99,12 @@ public class Employee extends BaseEntity {
     }
 
 
-    public void update(String name,
+    public void update(EmploymentType employmentType, String name,
                        LocalDate birthDate, String phone, String email, String address, LocalDate hireDate,
                        LocalDate resignationDate, String employeeStatusCode, String bankName, String accountNumber,
                        String accountHolder) {
 
+        this.employmentType = employmentType;
         this.name = name;
         this.birthDate = birthDate;
         this.phone = phone;
@@ -116,5 +124,19 @@ public class Employee extends BaseEntity {
 
     public boolean isLoginable() {
         return isActive() && !isDeleted() && !STATUS_RESIGNED.equals(this.employeeStatusCode);
+    }
+
+    public void applyAppointment(Department department, Position position) {
+        if (department != null) {
+            this.department = department;
+        }
+        if (position != null) {
+            this.position = position;
+        }
+    }
+
+    public void resign(LocalDate resignationDate) {
+        this.resignationDate = resignationDate;
+        this.employeeStatusCode = STATUS_RESIGNED;
     }
 }
