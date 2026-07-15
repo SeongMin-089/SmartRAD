@@ -1,0 +1,115 @@
+package erp.system.attendance.entity;
+
+import erp.system.common.entity.BaseEntity;
+import erp.system.employee.entity.Employee;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+@Getter
+@Entity
+@Table(name = "attendance")
+@SQLRestriction("deleted=false")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Attendance extends BaseEntity {
+
+    public static final String STATUS_NORMAL = "NORMAL";
+    public static final String STATUS_LATE = "LATE";
+    public static final String STATUS_EARLY_LEAVE = "EARLY_LEAVE";
+    public static final String STATUS_ABSENT = "ABSENT";
+
+    private static final LocalTime STANDARD_START_TIME = LocalTime.of(9, 0);
+    private static final LocalTime STANDARD_END_TIME = LocalTime.of(18, 0);
+    private static final LocalTime NIGHT_WORK_START_TIME = LocalTime.of(22, 0);
+    private static final int STANDARD_WORK_MINUTES = 480;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "attendance_id")
+    private Long attendanceId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id", nullable = false)
+    private Employee employee;
+
+    @Column(name = "work_date", nullable = false)
+    private LocalDate workDate;
+
+    @Column(name = "check_in_time")
+    private LocalDateTime checkInTime;
+
+    @Column(name = "check_out_time")
+    private LocalDateTime checkOutTime;
+
+    @Column(name = "work_minutes")
+    private Integer workMinutes;
+
+    @Column(name = "overtime_minutes")
+    private Integer overtimeMinutes;
+
+    @Column(name = "night_work_minutes")
+    private Integer nightWorkMinutes;
+
+    @Column(name = "late_minutes")
+    private Integer lateMinutes;
+
+    @Column(name = "early_leave_minutes")
+    private Integer earlyLeaveMinutes;
+
+    @Column(name = "attendance_status_code", length = 30)
+    private String attendanceStatusCode;
+
+    @Builder
+    public Attendance(Employee employee, LocalDate workDate, LocalDateTime checkInTime, int lateMinutes, String attendanceStatusCode) {
+        this.employee = employee;
+        this.workDate = workDate;
+        this.checkInTime = checkInTime;
+        this.lateMinutes = lateMinutes;
+        this.attendanceStatusCode = attendanceStatusCode;
+    }
+
+    public static Attendance checkIn(Employee employee, LocalDateTime checkInTime) {
+        int lateMinutes = (int) Math.max(0, Duration.between(STANDARD_START_TIME, checkInTime.toLocalTime()).toMinutes());
+        String status = lateMinutes > 0 ? STATUS_LATE : STATUS_NORMAL;
+
+        return Attendance.builder()
+                .employee(employee)
+                .workDate(checkInTime.toLocalDate())
+                .checkInTime(checkInTime)
+                .lateMinutes(lateMinutes)
+                .attendanceStatusCode(status)
+                .build();
+    }
+
+    public void checkOut(LocalDateTime checkOutTime) {
+        this.checkOutTime = checkOutTime;
+        this.workMinutes = (int) Math.max(0, Duration.between(this.checkInTime, checkOutTime).toMinutes());
+        this.overtimeMinutes = Math.max(0, this.workMinutes - STANDARD_WORK_MINUTES);
+        this.earlyLeaveMinutes = (int) Math.max(0, Duration.between(checkOutTime.toLocalTime(), STANDARD_END_TIME).toMinutes());
+        this.nightWorkMinutes = calculateNightWorkMinutes(checkOutTime);
+
+        if (this.lateMinutes != null && this.lateMinutes > 0) {
+            this.attendanceStatusCode = STATUS_LATE;
+        } else if (this.earlyLeaveMinutes > 0) {
+            this.attendanceStatusCode = STATUS_EARLY_LEAVE;
+        } else {
+            this.attendanceStatusCode = STATUS_NORMAL;
+        }
+    }
+
+    private int calculateNightWorkMinutes(LocalDateTime checkOutTime) {
+        LocalDateTime nightWorkStart = LocalDateTime.of(checkOutTime.toLocalDate(), NIGHT_WORK_START_TIME);
+        if (checkOutTime.isBefore(nightWorkStart)) {
+            return 0;
+        }
+        return (int) Duration.between(nightWorkStart, checkOutTime).toMinutes();
+    }
+}
