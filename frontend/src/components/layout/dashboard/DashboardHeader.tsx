@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+
 import {
   ArrowDownTrayIcon,
   BellIcon,
@@ -9,8 +10,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ClockIcon,
+  PlusIcon,
+  TagIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
+
 import { dashboardMenuGroups } from "@/lib/dashboardMenu";
 
 const flatItems = dashboardMenuGroups.flatMap((group) =>
@@ -72,7 +76,16 @@ export default function DashboardHeader() {
         <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50">
           <BellIcon className="w-5 h-5" />
         </button>
-        {isDailyAttendance ? (
+        {pathname === "/appointments" ? (
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("appointment:register"))}
+            className="flex items-center gap-2 bg-[#4A5DDF] hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
+          >
+            <PlusIcon className="w-4 h-4" />
+            신규 발령 등록
+          </button>
+        ) : isDailyAttendance ? (
           <>
             <button
               type="button"
@@ -91,14 +104,41 @@ export default function DashboardHeader() {
               근태 등록
             </button>
           </>
-        ) : isMonthlyAttendance ? (
+        ) : pathname === "/certificates" ? (
           <>
-            <div className="flex h-9 items-center overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-600">
-              <button type="button" onClick={() => changeMonth(-1)} aria-label="이전 월" className="flex h-full w-9 items-center justify-center hover:bg-gray-50"><ChevronLeftIcon className="h-4 w-4" /></button>
-              <div className="flex h-full items-center gap-2 border-x border-gray-200 px-3 text-sm font-semibold text-gray-800"><CalendarDaysIcon className="h-4 w-4 text-indigo-600" />{Number(monthlySelection.slice(0, 4))}년 {Number(monthlySelection.slice(5, 7))}월</div>
-              <button type="button" onClick={() => changeMonth(1)} aria-label="다음 월" className="flex h-full w-9 items-center justify-center hover:bg-gray-50"><ChevronRightIcon className="h-4 w-4" /></button>
-            </div>
-            <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("attendance:monthly-report"))} className="flex h-9 items-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"><ArrowDownTrayIcon className="h-4 w-4" />리포트 출력</button>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("certificate:export"))}
+              className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              일괄 다운로드
+            </button>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("certificate:register"))}
+              className="flex items-center gap-2 bg-[#4A5DDF] hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
+            >
+              <PlusIcon className="w-4 h-4" />
+              발급 신청
+            </button>
+          </>
+        ) : pathname === "/notices" ? (
+          <>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+            >
+              <TagIcon className="h-4 w-4" />
+              카테고리 관리
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-2 bg-[#4A5DDF] hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
+            >
+              <PlusIcon className="w-4 h-4" />
+              공지사항 등록
+            </button>
           </>
         ) : (
           <button
