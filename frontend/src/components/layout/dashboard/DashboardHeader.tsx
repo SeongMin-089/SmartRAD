@@ -71,6 +71,23 @@ export default function DashboardHeader() {
               근태 등록
             </button>
           </>
+        ) : pathname === "/certificates" ? (
+          <>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              일괄 다운로드
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-2 bg-[#4A5DDF] hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
+            >
+              <PlusIcon className="w-4 h-4" />
+              발급 신청
+            </button>
+          </>
         ) : pathname === "/notices" ? (
           <>
             <button
