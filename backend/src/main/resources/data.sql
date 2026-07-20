@@ -88,6 +88,8 @@ INSERT IGNORE INTO employee (employee_id, employee_no, name, birth_date, phone, 
 (50, 'E2026050', '권미소', '1990-11-15', '010-1845-4335', 'user050@example.com', '서울특별시 송파구 종로 34', '2023-10-25', NULL, 'ACTIVE', 1, 2, 2, NULL, NULL, NULL, NULL, 36000000, '$2a$10$3C20KNudypJ6CPb0xjegy.eQvw29LLQvoZIAOn.slfwzX6b0zshZu', b'1', b'0', '2026-07-15 06:00:32', '2026-07-15 06:00:32'),
 (56, 'E2026104', '정예준', '2003-10-16', '01064743243', 'jung@example.com', '', '2026-07-15', NULL, 'ACTIVE', 1, 6, 1, NULL, NULL, NULL, NULL, NULL, '$2a$10$3C20KNudypJ6CPb0xjegy.eQvw29LLQvoZIAOn.slfwzX6b0zshZu', b'1', b'0', '2026-07-15 23:27:45', '2026-07-15 23:27:45');
 
+UPDATE employee SET role_code = 'ADMIN' WHERE email = 'admin123@test.com' OR employee_no LIKE 'ADMIN%';
+
 INSERT IGNORE INTO employee_leave_balance (employee_leave_balance_id, employee_id, leave_type_id, total_days, used_days, remain_days, expire_date, created_at) VALUES
 (1, 1, 1, 18.0, 0.0, 18.0, '2021-03-02', '2026-07-15 06:47:32'),
 (2, 3, 1, 20.0, 0.0, 20.0, '2027-07-04', '2026-07-15 06:47:32'),

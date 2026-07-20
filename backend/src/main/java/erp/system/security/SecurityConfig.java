@@ -40,11 +40,54 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/employees").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/employees").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/employees/*").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/departments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/positions/**").permitAll()
+
+                        // 직원 관리 - 조회는 로그인만 하면 가능, 등록/수정/삭제/전사 조회는 관리자 전용
+                        .requestMatchers(HttpMethod.GET, "/api/employees/payroll-summary").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/employees/*").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/employees").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/employees/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/employees/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/employees/**").hasRole("ADMIN")
+
+                        // 인사 발령 - 관리자 전용
+                        .requestMatchers("/api/appointments/**").hasRole("ADMIN")
+
+                        // 근태 - 전사 현황 조회/수동등록은 관리자, 본인 출퇴근 체크는 로그인만 하면 가능
+                        .requestMatchers(HttpMethod.GET, "/api/attendances", "/api/attendances/monthly-summary").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/attendances").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/attendances/check-in").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/attendances/check-out").authenticated()
+
+                        // 제증명서 - 승인/반려/발급 처리는 관리자 전용, 신청/조회는 로그인만 하면 가능
+                        .requestMatchers(HttpMethod.PATCH, "/api/certificate-issues/**").hasRole("ADMIN")
+
+                        // 휴가정책 관리 - 등록/삭제는 관리자 전용
+                        .requestMatchers(HttpMethod.POST, "/api/leave-policies").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/leave-policies/**").hasRole("ADMIN")
+
+                        // 휴가 승인/반려/일괄승인 - 관리자 전용
+                        .requestMatchers(HttpMethod.PATCH, "/api/leave-requests/**").hasRole("ADMIN")
+
+                        // 휴가 잔여일수 수동 등록 - 관리자 전용
+                        .requestMatchers(HttpMethod.POST, "/api/leave-balances").hasRole("ADMIN")
+
+                        // 공통 마스터데이터(휴가유형/고용형태/부서/직급) 등록 - 관리자 전용
+                        .requestMatchers(HttpMethod.POST, "/api/leave-types", "/api/employment-types", "/api/departments", "/api/positions").hasRole("ADMIN")
+
+                        // 공지사항 - 등록/수정/삭제는 관리자 전용, 조회는 로그인만 하면 가능
+                        .requestMatchers(HttpMethod.POST, "/api/notices").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/notices/**").hasRole("ADMIN")
+
+                        // 급여 - 계산/지급처리/항목관리/수당관리는 전부 관리자 전용
+                        .requestMatchers("/api/payrolls/**").hasRole("ADMIN")
+                        .requestMatchers("/api/payroll-items/**").hasRole("ADMIN")
+                        .requestMatchers("/api/allowances/**").hasRole("ADMIN")
+                        .requestMatchers("/api/employee-allowances/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
