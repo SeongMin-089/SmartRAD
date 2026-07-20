@@ -48,4 +48,18 @@ public class EmployeeAllowanceService {
 
         return EmployeeAllowanceResponse.from(employeeAllowanceRepository.save(employeeAllowance));
     }
+
+    @Transactional
+    public EmployeeAllowanceResponse upsert(EmployeeAllowanceCreateRequest request) {
+        EmployeeAllowance existing = employeeAllowanceRepository
+                .findByEmployee_EmployeeIdAndAllowance_AllowanceId(request.employeeId(), request.allowanceId())
+                .orElse(null);
+
+        if (existing != null) {
+            existing.updateAmount(request.amount(), request.startDate(), request.endDate());
+            return EmployeeAllowanceResponse.from(existing);
+        }
+
+        return create(request);
+    }
 }

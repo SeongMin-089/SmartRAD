@@ -12,6 +12,9 @@ import {
   CalculatorIcon,
   BanknotesIcon,
   MegaphoneIcon,
+  FingerPrintIcon,
+  AdjustmentsHorizontalIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
 
 export const dashboardMenuGroups = [
@@ -33,10 +36,12 @@ export const dashboardMenuGroups = [
   {
     title: "근태 및 휴가 관리",
     items: [
+      { name: "내 근태 체크", href: "/attendance/self", icon: FingerPrintIcon },
       { name: "일일 근태 현황", href: "/attendance/daily", icon: ClockIcon },
       { name: "월간 근태 통계", href: "/attendance/monthly", icon: ChartBarIcon },
       { name: "휴가 승인/관리", href: "/leave/approve", icon: CheckBadgeIcon },
       { name: "휴가 사용 현황", href: "/leave/status", icon: CalendarIcon },
+      { name: "휴가정책 관리", href: "/leave/policies", icon: AdjustmentsHorizontalIcon },
     ]
   },
   {
@@ -45,6 +50,7 @@ export const dashboardMenuGroups = [
       { name: "급여 기본정보 관리", href: "/payroll/basic", icon: CurrencyDollarIcon },
       { name: "급여 계산", href: "/payroll/calculate", icon: CalculatorIcon },
       { name: "급여 지급 처리", href: "/payroll/process", icon: BanknotesIcon },
+      { name: "급여항목 관리", href: "/payroll/items", icon: TagIcon },
     ]
   },
   {

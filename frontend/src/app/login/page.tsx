@@ -112,6 +112,7 @@ export default function LoginPage() {
   const persistLoginAndRedirect = (data: LoginResponse) => {
     const storage = rememberMe ? window.localStorage : window.sessionStorage;
     storage.setItem("accessToken", data.accessToken);
+    storage.setItem("employeeId", String(data.employeeId));
     storage.setItem("employeeName", data.name);
     storage.setItem("employeeEmail", data.email);
     router.push("/dashboard");
@@ -485,10 +486,7 @@ export default function LoginPage() {
             </button>
 
             <p className="mt-6 text-center text-sm text-brand-muted">
-              계정이 없으신가요?{" "}
-              <Link href="/signup" className="font-semibold text-brand-primary hover:text-brand-primary-dark">
-                회원가입 신청
-              </Link>
+              계정 발급은 인사팀에 문의해주세요.
             </p>
           </div>
         </div>

@@ -51,6 +51,12 @@ public class EmployeeAllowance extends BaseEntity {
         this.endDate = endDate;
     }
 
+    public void updateAmount(BigDecimal amount, LocalDate startDate, LocalDate endDate) {
+        this.amount = amount;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+
     public boolean appliesTo(YearMonth yearMonth) {
         if (!isActive()) {
             return false;

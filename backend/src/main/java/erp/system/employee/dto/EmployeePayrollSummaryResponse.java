@@ -23,9 +23,10 @@ public record EmployeePayrollSummaryResponse(
         String accountNumber,
         String accountHolder,
         BigDecimal baseSalary,
+        BigDecimal allowanceAmount,
         LocalDateTime updatedAt
 ) {
-    public static EmployeePayrollSummaryResponse from(Employee employee) {
+    public static EmployeePayrollSummaryResponse from(Employee employee, BigDecimal allowanceAmount) {
         Department department = SoftDeleteAware.resolve(employee.getDepartment(), Department::getDepartmentName);
         Position position = SoftDeleteAware.resolve(employee.getPosition(), Position::getPositionName);
         EmploymentType employmentType = SoftDeleteAware.resolve(employee.getEmploymentType(), EmploymentType::getEmploymentTypeName);
@@ -42,6 +43,7 @@ public record EmployeePayrollSummaryResponse(
                 employee.getAccountNumber(),
                 employee.getAccountHolder(),
                 employee.getBaseSalary(),
+                allowanceAmount,
                 employee.getUpdatedAt()
         );
     }

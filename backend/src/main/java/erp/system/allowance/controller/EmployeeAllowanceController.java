@@ -27,4 +27,9 @@ public class EmployeeAllowanceController {
     public ResponseEntity<EmployeeAllowanceResponse> create(@Valid @RequestBody EmployeeAllowanceCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(employeeAllowanceService.create(request));
     }
+
+    @PutMapping
+    public EmployeeAllowanceResponse upsert(@Valid @RequestBody EmployeeAllowanceCreateRequest request) {
+        return employeeAllowanceService.upsert(request);
+    }
 }

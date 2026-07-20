@@ -5,6 +5,7 @@ import erp.system.auth.dto.KakaoLoginRequest;
 import erp.system.auth.dto.KakaoLoginResponse;
 import erp.system.auth.dto.LoginRequest;
 import erp.system.auth.dto.LoginResponse;
+import erp.system.auth.dto.ResetPasswordRequest;
 import erp.system.auth.jwt.JwtTokenProvider;
 import erp.system.auth.kakao.KakaoApiClient;
 import erp.system.auth.kakao.KakaoUserInfo;
@@ -77,6 +78,16 @@ public class AuthService {
 
         String accessToken = jwtTokenProvider.createToken(employee.getEmployeeId(), employee.getEmployeeNo());
         return KakaoLoginResponse.linked(accessToken, employee);
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        Employee employee = employeeRepository.findByEmployeeNoOrEmail(request.employeeNo(), request.employeeNo())
+                .filter(e -> request.email().equalsIgnoreCase(e.getEmail()))
+                .filter(e -> request.birthDate().equals(e.getBirthDate()))
+                .orElseThrow(() -> new BusinessException(ErrorCode.EMPLOYEE_NOT_FOUND, "입력하신 정보와 일치하는 계정을 찾을 수 없습니다."));
+
+        employee.changePassword(passwordEncoder.encode(request.newPassword()));
     }
 
     private String resolveKakaoId(String kakaoAccessToken) {

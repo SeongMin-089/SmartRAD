@@ -1,7 +1,11 @@
 package erp.system.employee.service;
 
+import erp.system.allowance.entity.Allowance;
+import erp.system.allowance.entity.EmployeeAllowance;
+import erp.system.allowance.repository.EmployeeAllowanceRepository;
 import erp.system.common.exception.BusinessException;
 import erp.system.common.exception.ErrorCode;
+import erp.system.common.util.SoftDeleteAware;
 import erp.system.department.entity.Department;
 import erp.system.department.repository.DepartmentRepository;
 import erp.system.employee.dto.EmployeeBaseSalaryUpdateRequest;
@@ -29,8 +33,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.Year;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +47,7 @@ public class EmployeeService {
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final EmploymentTypeRepository employmentTypeRepository;
+    private final EmployeeAllowanceRepository employeeAllowanceRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmployeeLeaveBalanceService employeeLeaveBalanceService;
 
@@ -71,8 +79,21 @@ public class EmployeeService {
     }
 
     public List<EmployeePayrollSummaryResponse> getPayrollSummaryList() {
+        Map<Long, BigDecimal> fixedAllowanceByEmployee = employeeAllowanceRepository.findAll().stream()
+                .filter(ea -> {
+                    Allowance allowance = SoftDeleteAware.resolve(ea.getAllowance(), Allowance::getAllowanceName);
+                    return allowance != null && allowance.isFixed();
+                })
+                .collect(Collectors.groupingBy(
+                        ea -> SoftDeleteAware.identifierOf(ea.getEmployee(), () -> ea.getEmployee().getEmployeeId()),
+                        Collectors.reducing(BigDecimal.ZERO, EmployeeAllowance::getAmount, BigDecimal::add)
+                ));
+
         return employeeRepository.findAll().stream()
-                .map(EmployeePayrollSummaryResponse::from)
+                .map(employee -> EmployeePayrollSummaryResponse.from(
+                        employee,
+                        fixedAllowanceByEmployee.getOrDefault(employee.getEmployeeId(), BigDecimal.ZERO)
+                ))
                 .toList();
     }
 

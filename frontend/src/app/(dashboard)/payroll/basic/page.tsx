@@ -30,12 +30,20 @@ interface EmployeeResponse {
   accountNumber: string | null;
   accountHolder: string | null;
   baseSalary: number | null;
+  allowanceAmount: number | null;
   updatedAt: string | null;
 }
 
 interface EmploymentTypeOption {
   employmentTypeId: number;
   employmentTypeName: string;
+}
+
+interface AllowanceOption {
+  allowanceId: number;
+  allowanceName: string;
+  taxable: boolean;
+  fixed: boolean;
 }
 
 interface EmployeeBulkResult {
@@ -67,6 +75,7 @@ type PayrollBasicRow = {
   accountHolder: string;
   basePay: string;
   allowance: string;
+  allowanceAmount: number;
   account: string;
   registeredAt: string;
   status: "등록완료" | "미등록";
@@ -114,7 +123,8 @@ function toRow(employee: EmployeeResponse): PayrollBasicRow {
     accountNumber: employee.accountNumber ?? "",
     accountHolder: employee.accountHolder ?? employee.name,
     basePay: formatCurrency(employee.baseSalary),
-    allowance: "0원",
+    allowance: formatCurrency(employee.allowanceAmount ?? 0),
+    allowanceAmount: employee.allowanceAmount ?? 0,
     account: maskAccount(employee.bankName, employee.accountNumber),
     registeredAt: registered ? toDate(employee.updatedAt) : "-",
     status: registered ? "등록완료" : "미등록",
@@ -163,6 +173,9 @@ export default function PayrollBasicPage() {
   const [selectedEmployee, setSelectedEmployee] =
     useState<PayrollBasicRow | null>(null);
   const [salaryInput, setSalaryInput] = useState("");
+  const [allowanceInput, setAllowanceInput] = useState("");
+  const [fixedAllowanceOption, setFixedAllowanceOption] =
+    useState<AllowanceOption | null>(null);
   const [bankNameInput, setBankNameInput] = useState("");
   const [accountNumberInput, setAccountNumberInput] = useState("");
   const [accountHolderInput, setAccountHolderInput] = useState("");
@@ -231,6 +244,21 @@ export default function PayrollBasicPage() {
     };
 
     fetchEmploymentTypes();
+  }, []);
+
+  useEffect(() => {
+    const fetchAllowances = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/allowances`, { headers: authHeaders() });
+        if (!res.ok) throw new Error("수당 목록을 불러오지 못했습니다.");
+        const data = (await res.json()) as AllowanceOption[];
+        setFixedAllowanceOption(data.find((option) => option.fixed) ?? null);
+      } catch (error) {
+        console.error("Failed to fetch allowances", error);
+      }
+    };
+
+    fetchAllowances();
   }, []);
 
   const registeredCount = employees.filter(
@@ -336,6 +364,7 @@ export default function PayrollBasicPage() {
   const openPayrollModal = (employee: PayrollBasicRow) => {
     setSelectedEmployee(employee);
     setSalaryInput(employee.baseSalary?.toString() ?? "");
+    setAllowanceInput(employee.allowanceAmount.toString());
     setBankNameInput(employee.bankName);
     setAccountNumberInput(employee.accountNumber);
     setAccountHolderInput(employee.accountHolder);
@@ -354,6 +383,12 @@ export default function PayrollBasicPage() {
     const baseSalary = Number(salaryInput.replace(/,/g, ""));
     if (!Number.isFinite(baseSalary) || baseSalary < 0) {
       setModalError("기본급은 0 이상의 숫자로 입력해주세요.");
+      return;
+    }
+
+    const allowanceAmount = Number(allowanceInput.replace(/,/g, "") || "0");
+    if (!Number.isFinite(allowanceAmount) || allowanceAmount < 0) {
+      setModalError("고정수당은 0 이상의 숫자로 입력해주세요.");
       return;
     }
 
@@ -411,12 +446,26 @@ export default function PayrollBasicPage() {
       );
       if (!salaryRes.ok) throw new Error("급여 기본정보 저장에 실패했습니다.");
 
+      if (fixedAllowanceOption) {
+        const allowanceRes = await fetch(`${API_BASE_URL}/employee-allowances`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({
+            employeeId: selectedEmployee.employeeId,
+            allowanceId: fixedAllowanceOption.allowanceId,
+            amount: allowanceAmount,
+          }),
+        });
+        if (!allowanceRes.ok) throw new Error("고정수당 저장에 실패했습니다.");
+      }
+
       const updatedEmployee = (await salaryRes.json()) as EmployeeResponse;
       const updatedRow = toRow({
         ...updatedEmployee,
         bankName: bankNameInput.trim() || null,
         accountNumber: accountNumberInput.trim() || null,
         accountHolder: accountHolderInput.trim() || null,
+        allowanceAmount,
       });
 
       setEmployees((current) =>
@@ -1170,11 +1219,14 @@ export default function PayrollBasicPage() {
                   />
                 </label>
                 <label className="space-y-1 text-sm font-semibold text-slate-700">
-                  <span>고정수당</span>
+                  <span>고정수당{fixedAllowanceOption ? ` (${fixedAllowanceOption.allowanceName})` : ""}</span>
                   <input
-                    value="0"
-                    disabled
-                    className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-400"
+                    value={allowanceInput}
+                    onChange={(event) => setAllowanceInput(event.target.value)}
+                    disabled={!fixedAllowanceOption}
+                    inputMode="numeric"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 disabled:bg-slate-100 disabled:text-slate-400"
+                    placeholder={fixedAllowanceOption ? "예: 200000" : "등록된 고정수당 항목이 없습니다"}
                   />
                 </label>
                 <label className="space-y-1 text-sm font-semibold text-slate-700">

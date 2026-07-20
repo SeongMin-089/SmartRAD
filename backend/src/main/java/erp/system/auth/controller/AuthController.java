@@ -5,9 +5,11 @@ import erp.system.auth.dto.KakaoLoginRequest;
 import erp.system.auth.dto.KakaoLoginResponse;
 import erp.system.auth.dto.LoginRequest;
 import erp.system.auth.dto.LoginResponse;
+import erp.system.auth.dto.ResetPasswordRequest;
 import erp.system.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,5 +35,11 @@ public class AuthController {
     @PostMapping("/kakao/link")
     public KakaoLoginResponse kakaoLink(@Valid @RequestBody KakaoLinkRequest request) {
         return authService.kakaoLink(request);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.noContent().build();
     }
 }
