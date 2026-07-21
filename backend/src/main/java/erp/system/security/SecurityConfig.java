@@ -66,8 +66,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/attendances/check-in").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/attendances/check-out").authenticated()
 
-                        // 제증명서 - 승인/반려/발급 처리는 관리자 전용, 신청/조회는 로그인만 하면 가능
+                        // 제증명서 - 본인 신청/내역 조회는 로그인만 하면 가능, 승인/반려/발급 처리 및
+                        // 임의 사번 지정 조회·등록은 관리자 전용
+                        .requestMatchers(HttpMethod.GET, "/api/certificate-issues/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/certificate-issues/me").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/certificate-issues/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/certificate-issues").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/certificate-issues").hasRole("ADMIN")
 
                         // 휴가정책 관리 - 등록/삭제는 관리자 전용
                         .requestMatchers(HttpMethod.POST, "/api/leave-policies").hasRole("ADMIN")

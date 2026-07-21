@@ -5,23 +5,17 @@ import { usePathname, useRouter } from "next/navigation";
 import { dashboardMenuGroups } from "@/lib/dashboardMenu";
 import { isAdmin } from "@/lib/auth";
 
-const adminOnlyPaths = dashboardMenuGroups
-  .flatMap((group) => group.items)
-  .filter((item) => item.adminOnly)
-  .map((item) => item.href);
-
-const employeePaths = dashboardMenuGroups
-  .flatMap((group) => group.items)
-  .filter((item) => !item.adminOnly)
-  .map((item) => item.href);
+const allMenuItems = dashboardMenuGroups.flatMap((group) => group.items);
 
 function isAdminOnlyPath(pathname: string) {
-  // `/notices/view` is an employee route nested below the administrator's
-  // `/notices` route, so public routes must win before prefix matching.
-  if (employeePaths.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
-    return false;
-  }
-  return adminOnlyPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  // Some employee routes are nested below an administrator-only route
+  // (e.g. `/certificates/my` under `/certificates`), so prefix matches must
+  // resolve to the most specific (longest href) menu item, not just the
+  // first one encountered.
+  const matches = allMenuItems.filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+  if (matches.length === 0) return false;
+  const mostSpecific = matches.reduce((longest, item) => (item.href.length > longest.href.length ? item : longest));
+  return mostSpecific.adminOnly;
 }
 
 export default function RoleGuard() {
