@@ -26,6 +26,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ASSISTANT_PROVIDER: ${ASSISTANT_PROVIDER:-gemini}
     ports:
       - "8081:8080"
     depends_on:
