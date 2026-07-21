@@ -1,6 +1,6 @@
 package erp.system.assistant.service;
 
-import erp.system.assistant.client.AnthropicClient;
+import erp.system.assistant.client.AiClient;
 import erp.system.assistant.dto.ChatResponse;
 import erp.system.assistant.dto.SummarizeResponse;
 import erp.system.attendance.dto.AttendanceResponse;
@@ -24,7 +24,7 @@ public class AssistantService {
 
     private static final int RECENT_PAYROLL_COUNT = 3;
 
-    private final AnthropicClient anthropicClient;
+    private final AiClient aiClient;
     private final EmployeeService employeeService;
     private final EmployeeLeaveBalanceService employeeLeaveBalanceService;
     private final PayrollService payrollService;
@@ -37,12 +37,12 @@ public class AssistantService {
 
     public ChatResponse ask(Long employeeId, String message) {
         String systemPrompt = buildSystemPrompt(employeeId);
-        String reply = anthropicClient.ask(systemPrompt, message);
+        String reply = aiClient.ask(systemPrompt, message);
         return new ChatResponse(reply);
     }
 
     public SummarizeResponse summarize(String text) {
-        String summary = anthropicClient.ask(SUMMARIZE_SYSTEM_PROMPT, text);
+        String summary = aiClient.ask(SUMMARIZE_SYSTEM_PROMPT, text);
         return new SummarizeResponse(summary.trim());
     }
 

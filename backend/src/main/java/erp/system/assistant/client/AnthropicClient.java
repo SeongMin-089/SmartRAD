@@ -5,6 +5,7 @@ import erp.system.common.exception.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -15,7 +16,8 @@ import org.springframework.web.client.RestClientResponseException;
 import java.util.List;
 
 @Component
-public class AnthropicClient {
+@ConditionalOnProperty(name = "assistant.provider", havingValue = "anthropic")
+public class AnthropicClient implements AiClient {
 
     private static final Logger log = LoggerFactory.getLogger(AnthropicClient.class);
 
@@ -31,10 +33,12 @@ public class AnthropicClient {
         this.model = model;
     }
 
+    @Override
     public boolean isConfigured() {
         return StringUtils.hasText(apiKey);
     }
 
+    @Override
     public String ask(String systemPrompt, String userMessage) {
         if (!isConfigured()) {
             throw new BusinessException(ErrorCode.ASSISTANT_NOT_CONFIGURED);
