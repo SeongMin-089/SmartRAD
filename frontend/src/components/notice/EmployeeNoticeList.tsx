@@ -140,7 +140,7 @@ export default function EmployeeNoticeList() {
 
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
-          <div className="flex items-center gap-2"><h1 className="text-sm font-bold text-slate-900">공지사항 목록</h1><span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">총 {totalElements}건</span>{!canManage && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-500">미확인 5건</span>}</div>
+          <div className="flex items-center gap-2"><h1 className="text-sm font-bold text-slate-900">공지사항 목록</h1><span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">총 {totalElements}건</span></div>
           <nav className="flex items-center gap-5 text-xs font-semibold text-slate-400" aria-label="공지사항 분류">{FILTER_TABS.map((tab) => <button key={tab} type="button" onClick={() => setSelectedType(tab)} className={`relative py-1 ${selectedType === tab ? "text-indigo-600 after:absolute after:-bottom-3 after:left-0 after:h-0.5 after:w-full after:bg-indigo-500" : "hover:text-slate-700"}`}>{tab}</button>)}</nav>
         </div>
         {actionError && <p className="px-4 pt-3 text-xs font-medium text-rose-500">{actionError}</p>}

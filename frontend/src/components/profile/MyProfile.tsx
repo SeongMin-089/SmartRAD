@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { UserIcon, BuildingOfficeIcon, BriefcaseIcon, IdentificationIcon, EnvelopeIcon, PhoneIcon, ClockIcon, CheckBadgeIcon, XMarkIcon, PencilSquareIcon, DocumentTextIcon, CurrencyDollarIcon } from "@heroicons/react/24/outline";
 import { getEmployeeStatusLabel, getEmployeeStatusBadgeClasses } from "@/lib/employeeStatus";
+import { certificateTypeLabel, statusBadge, type CertificateIssueResponse } from "@/components/certificate/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081/api";
 
@@ -62,10 +63,39 @@ interface LeaveBalance {
 
 interface Attendance {
   attendanceId: number;
-  date: string;
+  workDate: string;
   checkInTime: string;
   checkOutTime: string | null;
-  status: string;
+  attendanceStatusCode: string;
+}
+
+const ATTENDANCE_STATUS_LABELS: Record<string, string> = {
+  NORMAL: "정상",
+  LATE: "지각",
+  EARLY_LEAVE: "조퇴",
+  OVERTIME: "추가근무",
+  NIGHT_WORK: "야근",
+  ABSENT: "결근",
+};
+
+interface Payroll {
+  payrollId: number;
+  payrollYearMonth: string;
+  paymentDate: string | null;
+  totalPayAmount: number | null;
+  totalDeductionAmount: number | null;
+  realPayAmount: number | null;
+  payrollStatusCode: string;
+}
+
+function formatCurrency(value: number | null | undefined) {
+  return `₩${Math.round(value ?? 0).toLocaleString("ko-KR")}`;
+}
+
+function formatPayrollMonth(value: string) {
+  const normalized = value.replace(/(\d{4})(\d{2})$/, "$1-$2");
+  const [year, month] = normalized.split("-");
+  return year && month ? `${year}년 ${Number(month)}월` : value;
 }
 
 function formatTenure(hireDate: string | null) {
@@ -103,6 +133,8 @@ export default function MyProfile() {
   const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);
   const [todayAttendance, setTodayAttendance] = useState<Attendance | null>(null);
+  const [certificateIssues, setCertificateIssues] = useState<CertificateIssueResponse[]>([]);
+  const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [activeTab, setActiveTab] = useState<TabType>("appointments");
@@ -122,11 +154,13 @@ export default function MyProfile() {
   const fetchData = async (employeeId: string) => {
     setLoading(true);
     try {
-      const [profileRes, appointmentsRes, leaveRes, attendanceRes] = await Promise.all([
+      const [profileRes, appointmentsRes, leaveRes, attendanceRes, certificatesRes, payrollsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/employees/${employeeId}`, { headers: authHeaders() }),
         fetch(`${API_BASE_URL}/appointments/me`, { headers: authHeaders() }),
         fetch(`${API_BASE_URL}/leave-balances?employeeId=${employeeId}`, { headers: authHeaders() }),
         fetch(`${API_BASE_URL}/attendances/me?yearMonth=${currentYearMonthString()}`, { headers: authHeaders() }),
+        fetch(`${API_BASE_URL}/certificate-issues/me`, { headers: authHeaders() }),
+        fetch(`${API_BASE_URL}/payrolls/me`, { headers: authHeaders() }),
       ]);
 
       if (profileRes.ok) {
@@ -135,17 +169,24 @@ export default function MyProfile() {
         setEditForm({ phone: data.phone || "", email: data.email || "", address: data.address || "" });
       }
       if (appointmentsRes.ok) setAppointments(await appointmentsRes.json());
-      
+
       if (leaveRes.ok) {
         const balances = await leaveRes.json();
         setLeaveBalances(balances);
       }
-      
+
       if (attendanceRes.ok) {
         const attendances: Attendance[] = await attendanceRes.json();
         const today = todayString();
-        const found = attendances.find((a: Attendance) => a.date === today);
+        const found = attendances.find((a: Attendance) => a.workDate === today);
         setTodayAttendance(found || null);
+      }
+
+      if (certificatesRes.ok) setCertificateIssues(await certificatesRes.json());
+
+      if (payrollsRes.ok) {
+        const result: Payroll[] = await payrollsRes.json();
+        setPayrolls([...result].sort((a, b) => b.payrollYearMonth.localeCompare(a.payrollYearMonth)));
       }
     } catch (error) {
       console.error("Failed to fetch my profile data", error);
@@ -323,8 +364,8 @@ export default function MyProfile() {
                 <div>
                   <p className="text-sm text-gray-500 font-medium">오늘 출근 시간</p>
                   <h3 className="text-2xl font-bold text-gray-900 mt-0.5">
-                    {todayAttendance?.checkInTime?.substring(0, 5) || "미출근"}
-                    {todayAttendance?.checkInTime && <span className="text-sm font-medium text-gray-500 ml-1">({todayAttendance.status})</span>}
+                    {todayAttendance?.checkInTime?.substring(11, 16) || "미출근"}
+                    {todayAttendance?.checkInTime && <span className="text-sm font-medium text-gray-500 ml-1">({ATTENDANCE_STATUS_LABELS[todayAttendance.attendanceStatusCode] ?? todayAttendance.attendanceStatusCode})</span>}
                   </h3>
                 </div>
               </div>
@@ -400,17 +441,48 @@ export default function MyProfile() {
               )}
 
               {activeTab === "certificates" && (
-                <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-3">
-                  <DocumentTextIcon className="w-12 h-12 text-gray-200" />
-                  <p className="text-sm">신청한 증명서 발급 내역이 없습니다.</p>
-                </div>
+                certificateIssues.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-3">
+                    <DocumentTextIcon className="w-12 h-12 text-gray-200" />
+                    <p className="text-sm">신청한 증명서 발급 내역이 없습니다.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {certificateIssues.map((issue) => {
+                      const badge = statusBadge(issue);
+                      return (
+                        <div key={issue.employeeCertificateIssueId} className="flex items-center justify-between gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{certificateTypeLabel(issue.certificateType)}</p>
+                            <p className="mt-1 text-xs text-gray-500">{issue.applicationDate} · {issue.purpose || "용도 없음"}</p>
+                          </div>
+                          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>{badge.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
               )}
 
               {activeTab === "payroll" && (
-                <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-3">
-                  <CurrencyDollarIcon className="w-12 h-12 text-gray-200" />
-                  <p className="text-sm">최근 급여 명세서 내역이 없습니다.</p>
-                </div>
+                payrolls.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-3">
+                    <CurrencyDollarIcon className="w-12 h-12 text-gray-200" />
+                    <p className="text-sm">최근 급여 명세서 내역이 없습니다.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {payrolls.map((payroll) => (
+                      <div key={payroll.payrollId} className="flex items-center justify-between gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{formatPayrollMonth(payroll.payrollYearMonth)}</p>
+                          <p className="mt-1 text-xs text-gray-500">지급일 {payroll.paymentDate ?? "지급 예정"}</p>
+                        </div>
+                        <p className="shrink-0 text-sm font-bold text-blue-600">{formatCurrency(payroll.realPayAmount)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )
               )}
             </div>
           </div>
