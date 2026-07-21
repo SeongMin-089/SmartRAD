@@ -41,10 +41,9 @@ export default function DashboardHeader() {
   const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
-    setRole(window.localStorage.getItem("role") ?? window.sessionStorage.getItem("role"))
-  }, [])
-
-  useEffect(() => {
+    const storedRole = window.localStorage.getItem("role") ?? window.sessionStorage.getItem("role")
+    setRole(storedRole)
+    
     const handleSync = (event: Event) => {
       const { month } = (event as CustomEvent<{ month: string }>).detail
       setMonthlySelection(month)
