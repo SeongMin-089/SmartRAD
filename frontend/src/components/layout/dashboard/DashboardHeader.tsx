@@ -38,6 +38,11 @@ export default function DashboardHeader() {
   const isLeaveApproval = pathname === "/leave/approve"
   const isLeaveUsage = pathname === "/leave/status"
   const [monthlySelection, setMonthlySelection] = useState(currentMonth)
+  const [role, setRole] = useState<string | null>(null)
+
+  useEffect(() => {
+    setRole(window.localStorage.getItem("role") ?? window.sessionStorage.getItem("role"))
+  }, [])
 
   useEffect(() => {
     const handleSync = (event: Event) => {
@@ -180,7 +185,7 @@ export default function DashboardHeader() {
             <ArrowDownTrayIcon className="h-4 w-4" />
             리포트 출력
           </button>
-        ) : (
+        ) : role === "ADMIN" ? (
           <button
             type="button"
             onClick={() => router.push("/employees/new")}
@@ -189,7 +194,7 @@ export default function DashboardHeader() {
             <UserPlusIcon className="w-4 h-4" />
             직원 등록
           </button>
-        )}
+        ) : null}
       </div>
     </header>
   )
