@@ -8,6 +8,7 @@ import {
   BellIcon,
   PlusIcon,
   ClockIcon,
+  ArrowPathIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline"
 
@@ -35,7 +36,7 @@ export default function DashboardHeader() {
     flatItems.find((item) => item.href === pathname) ?? flatItems[0]
   const isDailyAttendance = pathname === "/attendance/daily"
   const isMonthlyAttendance = pathname === "/attendance/monthly"
-  const isMyAttendance = pathname === "/attendance/my"
+  const isSelfAttendance = pathname === "/attendance/self"
   const isLeaveApproval = pathname === "/leave/approve"
   const isLeaveUsage = pathname === "/leave/status"
   const [monthlySelection, setMonthlySelection] = useState(currentMonth)
@@ -79,7 +80,18 @@ export default function DashboardHeader() {
         <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50">
           <BellIcon className="w-5 h-5" />
         </button>
-        {isMyAttendance ? null : pathname === "/appointments" ? (
+        {isSelfAttendance ? (
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("attendance:self-refresh"))
+            }
+            className="flex h-10 items-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 sm:px-4"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">오늘 기록 새로고침</span>
+          </button>
+        ) : pathname === "/appointments" ? (
           <button
             type="button"
             onClick={() =>
