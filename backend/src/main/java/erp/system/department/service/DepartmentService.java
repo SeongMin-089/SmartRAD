@@ -1,32 +1,113 @@
 package erp.system.department.service;
 
+import erp.system.attendance.entity.Attendance;
+import erp.system.attendance.repository.AttendanceRepository;
 import erp.system.common.exception.BusinessException;
 import erp.system.common.exception.ErrorCode;
 import erp.system.department.dto.DepartmentCreateRequest;
 import erp.system.department.dto.DepartmentResponse;
+import erp.system.department.dto.DepartmentStatsResponse;
 import erp.system.department.dto.DepartmentUpdateRequest;
 import erp.system.department.entity.Department;
 import erp.system.department.repository.DepartmentRepository;
+import erp.system.employee.entity.Employee;
 import erp.system.employee.repository.EmployeeRepository;
+import erp.system.payroll.entity.Payroll;
+import erp.system.payroll.repository.PayrollRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DepartmentService {
 
+    private static final DateTimeFormatter YEAR_MONTH_KEY = DateTimeFormatter.ofPattern("yyyyMM");
+
     private final DepartmentRepository departmentRepository;
     private final EmployeeRepository employeeRepository;
+    private final PayrollRepository payrollRepository;
+    private final AttendanceRepository attendanceRepository;
 
     public List<DepartmentResponse> getAll() {
         return departmentRepository.findAll().stream()
                 .map(DepartmentResponse::from)
                 .toList();
+    }
+
+    public List<DepartmentStatsResponse> getStats() {
+        List<Department> departments = departmentRepository.findAll();
+
+        Map<Long, List<Employee>> employeesByDept = employeeRepository.findAll().stream()
+                .filter(e -> !Employee.STATUS_RESIGNED.equals(e.getEmployeeStatusCode()))
+                .filter(e -> e.getDepartment() != null)
+                .collect(Collectors.groupingBy(e -> e.getDepartment().getDepartmentId()));
+
+        YearMonth currentYearMonth = YearMonth.now();
+        List<Payroll> currentPayrolls = payrollRepository.findAllByPayrollYearMonth(currentYearMonth.format(YEAR_MONTH_KEY));
+        Map<Long, List<Payroll>> payrollsByDept = currentPayrolls.stream()
+                .filter(p -> p.getEmployee() != null && p.getEmployee().getDepartment() != null)
+                .collect(Collectors.groupingBy(p -> p.getEmployee().getDepartment().getDepartmentId()));
+
+        List<Attendance> currentAttendances = attendanceRepository.findAllByWorkDateBetween(
+                currentYearMonth.atDay(1), currentYearMonth.atEndOfMonth());
+        Map<Long, List<Attendance>> attendancesByDept = currentAttendances.stream()
+                .filter(a -> a.getEmployee() != null && a.getEmployee().getDepartment() != null)
+                .collect(Collectors.groupingBy(a -> a.getEmployee().getDepartment().getDepartmentId()));
+
+        LocalDate today = LocalDate.now();
+
+        return departments.stream()
+                .map(dept -> buildStats(dept, employeesByDept, payrollsByDept, attendancesByDept, today))
+                .toList();
+    }
+
+    private DepartmentStatsResponse buildStats(Department department,
+                                                Map<Long, List<Employee>> employeesByDept,
+                                                Map<Long, List<Payroll>> payrollsByDept,
+                                                Map<Long, List<Attendance>> attendancesByDept,
+                                                LocalDate today) {
+        List<Employee> deptEmployees = employeesByDept.getOrDefault(department.getDepartmentId(), List.of());
+        var tenureStats = deptEmployees.stream()
+                .map(Employee::getHireDate)
+                .filter(Objects::nonNull)
+                .mapToDouble(hireDate -> ChronoUnit.DAYS.between(hireDate, today) / 365.0)
+                .average();
+        Double averageTenureYears = tenureStats.isPresent() ? tenureStats.getAsDouble() : null;
+
+        List<Payroll> deptPayrolls = payrollsByDept.getOrDefault(department.getDepartmentId(), List.of());
+        BigDecimal payrollTotal = deptPayrolls.stream()
+                .map(p -> p.getRealPayAmount() != null ? p.getRealPayAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal payrollAverage = deptPayrolls.isEmpty()
+                ? BigDecimal.ZERO
+                : payrollTotal.divide(BigDecimal.valueOf(deptPayrolls.size()), 0, RoundingMode.HALF_UP);
+
+        List<Attendance> deptAttendances = attendancesByDept.getOrDefault(department.getDepartmentId(), List.of());
+        Double attendanceIssueRate = deptAttendances.isEmpty() ? null : deptAttendances.stream()
+                .filter(a -> Attendance.STATUS_LATE.equals(a.getAttendanceStatusCode()) || Attendance.STATUS_ABSENT.equals(a.getAttendanceStatusCode()))
+                .count() * 100.0 / deptAttendances.size();
+
+        return new DepartmentStatsResponse(
+                department.getDepartmentId(),
+                deptEmployees.size(),
+                averageTenureYears,
+                payrollTotal,
+                payrollAverage,
+                attendanceIssueRate
+        );
     }
 
     @Transactional

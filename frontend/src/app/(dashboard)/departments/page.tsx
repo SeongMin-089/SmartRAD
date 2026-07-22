@@ -15,6 +15,31 @@ function authHeaders(): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+interface DepartmentStats {
+  departmentId: number;
+  employeeCount: number;
+  averageTenureYears: number | null;
+  monthlyPayrollTotal: number;
+  monthlyPayrollAverage: number;
+  attendanceIssueRate: number | null;
+}
+
+function formatCompactWon(value: number) {
+  if (!value) return "-";
+  const man = Math.round(value / 10000);
+  return man >= 10000
+    ? `${(man / 10000).toFixed(1)}억원`
+    : `${man.toLocaleString("ko-KR")}만원`;
+}
+
+function formatTenure(years: number | null) {
+  return years == null ? "-" : `${years.toFixed(1)}년`;
+}
+
+function formatRate(rate: number | null) {
+  return rate == null ? "-" : `${Math.round(rate)}%`;
+}
+
 // Tree node definition for processing
 interface OrgNode extends Department {
   children: OrgNode[];
@@ -45,9 +70,10 @@ function buildTree(departments: Department[]): OrgNode[] {
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [statsByDept, setStatsByDept] = useState<Map<number, DepartmentStats>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [showModal, setShowModal] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [initialParentId, setInitialParentId] = useState<number | null>(null);
@@ -59,14 +85,19 @@ export default function DepartmentsPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/departments`, {
-          headers: authHeaders(),
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const [deptRes, statsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/departments`, { headers: authHeaders() }),
+          fetch(`${API_BASE_URL}/departments/stats`, { headers: authHeaders() }),
+        ]);
+        if (deptRes.ok) {
+          const data = await deptRes.json();
           if (!cancelled) setDepartments(data);
         } else {
           if (!cancelled) setError("부서 목록을 불러오는데 실패했습니다.");
+        }
+        if (statsRes.ok) {
+          const statsData: DepartmentStats[] = await statsRes.json();
+          if (!cancelled) setStatsByDept(new Map(statsData.map((s) => [s.departmentId, s])));
         }
       } catch {
         if (!cancelled) setError("네트워크 오류가 발생했습니다.");
@@ -116,47 +147,72 @@ export default function DepartmentsPage() {
   const treeRoots = buildTree(departments);
 
   // Styled Node Component
-  const OrgChartNode = ({ node }: { node: OrgNode }) => (
-    <div className="inline-block relative group mx-2">
-      {/* Box container */}
-      <div className="flex flex-col w-40 bg-white border border-[#1e4e8c] shadow-md transition-shadow">
-        {/* Header - Department Name */}
-        <div className="bg-[#1e4e8c] text-white text-center py-2 px-2 font-bold text-[15px] tracking-wide break-keep leading-tight min-h-[44px] flex items-center justify-center">
-          {node.departmentName}
-        </div>
-        
-        {/* Body - Manager Name */}
-        <div className="text-center py-2 px-2 text-[15px] font-semibold text-gray-800 bg-white min-h-[40px] flex items-center justify-center relative">
-          <span>{node.departmentHeadName || "(담당자 미지정)"}</span>
-          
-          {/* Action Overlay (Hover) */}
-          <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity z-10 border-t border-gray-100">
-            <button
-              onClick={() => handleOpenNew(node.departmentId)}
-              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-              title="하위 부서 추가"
-            >
-              <PlusIcon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => handleOpenEdit(node)}
-              className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"
-              title="수정"
-            >
-              <PencilSquareIcon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => handleDelete(node.departmentId)}
-              className="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition-colors"
-              title="삭제"
-            >
-              <TrashIcon className="w-5 h-5" />
-            </button>
+  const OrgChartNode = ({ node }: { node: OrgNode }) => {
+    const stats = statsByDept.get(node.departmentId);
+    return (
+      <div className="inline-block relative group mx-2">
+        {/* Box container */}
+        <div className="flex flex-col w-44 bg-white border border-[#1e4e8c] shadow-md transition-shadow">
+          {/* Header - Department Name */}
+          <div className="bg-[#1e4e8c] text-white text-center py-2 px-2 font-bold text-[15px] tracking-wide break-keep leading-tight min-h-[44px] flex items-center justify-center">
+            {node.departmentName}
+          </div>
+
+          {/* Body - Manager Name */}
+          <div className="text-center py-2 px-2 text-[15px] font-semibold text-gray-800 bg-white min-h-[40px] flex items-center justify-center relative">
+            <span>{node.departmentHeadName || "(담당자 미지정)"}</span>
+
+            {/* Action Overlay (Hover) */}
+            <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity z-10 border-t border-gray-100">
+              <button
+                onClick={() => handleOpenNew(node.departmentId)}
+                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                title="하위 부서 추가"
+              >
+                <PlusIcon className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => handleOpenEdit(node)}
+                className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                title="수정"
+              >
+                <PencilSquareIcon className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => handleDelete(node.departmentId)}
+                className="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                title="삭제"
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Footer - Department Stats */}
+          <div className="border-t border-gray-100 bg-gray-50 px-2.5 py-1.5 text-[10px] leading-relaxed text-gray-500">
+            <div className="flex items-center justify-between">
+              <span>인원</span>
+              <span className="font-semibold text-gray-700">{stats ? `${stats.employeeCount}명` : "-"}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>평균 근속</span>
+              <span className="font-semibold text-gray-700">{stats ? formatTenure(stats.averageTenureYears) : "-"}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>이번달 급여</span>
+              <span className="font-semibold text-gray-700">{stats ? formatCompactWon(stats.monthlyPayrollTotal) : "-"}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>근태 이상</span>
+              <span className={`font-semibold ${stats && stats.attendanceIssueRate ? "text-rose-600" : "text-gray-700"}`}>
+                {stats ? formatRate(stats.attendanceIssueRate) : "-"}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Recursive render function
   const renderTreeNodes = (nodes: OrgNode[]) => {

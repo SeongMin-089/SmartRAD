@@ -2,6 +2,7 @@ package erp.system.department.controller;
 
 import erp.system.department.dto.DepartmentCreateRequest;
 import erp.system.department.dto.DepartmentResponse;
+import erp.system.department.dto.DepartmentStatsResponse;
 import erp.system.department.service.DepartmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,11 @@ public class DepartmentController {
     @GetMapping
     public List<DepartmentResponse> getAll() {
         return departmentService.getAll();
+    }
+
+    @GetMapping("/stats")
+    public List<DepartmentStatsResponse> getStats() {
+        return departmentService.getStats();
     }
 
     @PostMapping
