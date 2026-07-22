@@ -18,6 +18,7 @@ import {
   AdjustmentsHorizontalIcon,
   TagIcon,
   ReceiptPercentIcon,
+  BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
 
 export const dashboardMenuGroups = [
@@ -33,6 +34,7 @@ export const dashboardMenuGroups = [
       { name: "내 정보(프로필) 조회", href: "/profile", icon: UserIcon, adminOnly: false },
       { name: "직원 목록 조회", href: "/employees", icon: UsersIcon, adminOnly: false },
       { name: "제증명서 신청/조회", href: "/certificates/my", icon: DocumentTextIcon, adminOnly: false, userOnly: true },
+      { name: "부서 관리", href: "/departments", icon: BuildingOfficeIcon, adminOnly: true },
       { name: "신규 직원 등록", href: "/employees/new", icon: UserPlusIcon, adminOnly: true },
       { name: "인사 발령 관리", href: "/appointments", icon: ArrowPathIcon, adminOnly: true },
       { name: "제증명서 관리", href: "/certificates", icon: DocumentTextIcon, adminOnly: true },
