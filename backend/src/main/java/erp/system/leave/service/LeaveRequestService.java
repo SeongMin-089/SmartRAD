@@ -78,6 +78,14 @@ public class LeaveRequestService {
         return LeaveRequestResponse.from(request);
     }
 
+    @Transactional
+    public int cancelAllPendingForEmployee(Long employeeId) {
+        List<LeaveRequest> pendingRequests = leaveRequestRepository
+                .findAllByEmployee_EmployeeIdAndStatus(employeeId, LeaveRequest.STATUS_PENDING);
+        pendingRequests.forEach(LeaveRequest::cancel);
+        return pendingRequests.size();
+    }
+
     public List<LeaveRequestResponse> getList(Long employeeId, String status) {
         return leaveRequestRepository.findAll((root, query, cb) -> {
             var predicates = cb.conjunction();

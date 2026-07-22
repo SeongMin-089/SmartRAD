@@ -25,6 +25,7 @@ import erp.system.employee.repository.EmployeeRepository;
 import erp.system.employmenttype.entity.EmploymentType;
 import erp.system.employmenttype.repository.EmploymentTypeRepository;
 import erp.system.leave.service.EmployeeLeaveBalanceService;
+import erp.system.leave.service.LeaveRequestService;
 import erp.system.notification.entity.Notification;
 import erp.system.notification.service.NotificationService;
 import erp.system.position.entity.Position;
@@ -56,6 +57,7 @@ public class EmployeeService {
     private final EmployeeAllowanceRepository employeeAllowanceRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmployeeLeaveBalanceService employeeLeaveBalanceService;
+    private final LeaveRequestService leaveRequestService;
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
@@ -238,7 +240,10 @@ public class EmployeeService {
     @Transactional
     public void delete(Long employeeId, Long actorId) {
         Employee employee = findActive(employeeId);
-        String description = "직원 삭제: " + employee.getName() + "(" + employee.getEmployeeNo() + ")";
+        int cancelledLeaveRequests = leaveRequestService.cancelAllPendingForEmployee(employeeId);
+
+        String description = "직원 삭제: " + employee.getName() + "(" + employee.getEmployeeNo() + ")"
+                + (cancelledLeaveRequests > 0 ? " - 대기중 휴가신청 " + cancelledLeaveRequests + "건 자동 취소" : "");
         employee.markDeleted();
         auditLogService.log(actorId, AuditLog.ACTION_EMPLOYEE_DELETE, description, null);
     }
