@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { XMarkIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import Modal, { ModalCancelButton, ModalPrimaryButton } from "@/components/common/Modal";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081/api";
 
@@ -69,20 +70,23 @@ export default function EmployeeEditModal({ employee, onClose, onSave }: any) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <PencilSquareIcon className="w-5 h-5 text-blue-600" />
-            직원 정보 수정
-          </h2>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
-            <XMarkIcon className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="p-5 space-y-5 max-h-[65vh] overflow-y-auto">
+    <Modal
+      icon={PencilSquareIcon}
+      title="직원 정보 수정"
+      onClose={onClose}
+      maxWidth="lg"
+      as="form"
+      onSubmit={handleSubmit}
+      bodyClassName="max-h-[65vh] space-y-5 overflow-y-auto p-6"
+      footer={
+        <>
+          <ModalCancelButton onClick={onClose} />
+          <ModalPrimaryButton type="submit" disabled={loading}>
+            {loading ? "저장 중..." : "저장"}
+          </ModalPrimaryButton>
+        </>
+      }
+    >
             <div className="border border-gray-100 rounded-lg overflow-hidden">
               <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-100">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">프로필 사진</h3>
@@ -161,16 +165,6 @@ export default function EmployeeEditModal({ employee, onClose, onSave }: any) {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100 bg-gray-50">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">취소</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50">
-              {loading ? "저장 중..." : "저장"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    </Modal>
   );
 }
