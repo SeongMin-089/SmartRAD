@@ -1274,7 +1274,7 @@ export default function PayrollCalculatePage() {
         <Modal
           icon={ExclamationTriangleIcon}
           title="검토 필요 직원 목록"
-          subtitle={`급여 계산 결과 중 확인이 필요한 직원이 ${payrollRows.filter(r => r.reviewStatus === "검토필요").length}명 있습니다.`}
+          subtitle={`급여 계산 결과 중 확인이 필요한 직원이 ${filteredRows.filter(r => r.reviewStatus === "검토필요").length}명 있습니다.`}
           onClose={() => setReviewModalOpen(false)}
           maxWidth="xl"
           footer={
@@ -1292,7 +1292,7 @@ export default function PayrollCalculatePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {payrollRows.filter(r => r.reviewStatus === "검토필요").map(row => (
+                {filteredRows.filter(r => r.reviewStatus === "검토필요").map(row => (
                   <tr key={row.payrollId}>
                     <td className="px-4 py-3 text-slate-600">{row.employeeNo}</td>
                     <td className="px-4 py-3 font-bold">{row.name}</td>
