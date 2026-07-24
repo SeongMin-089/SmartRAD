@@ -97,7 +97,7 @@ export default function LeaveApprovalTable(props: Props) {
 
       <div className="flex flex-col gap-3 border-t border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-sm text-gray-500">총 {total}건</span>
-        <div className="flex max-w-full items-center gap-1 overflow-x-auto">
+        <div className="flex w-full max-w-full items-center justify-center gap-1 overflow-x-auto sm:w-auto sm:justify-start">
           <PageButton label="처음" disabled={page === 0} onClick={() => props.onPage(0)} icon={<ChevronDoubleLeftIcon className="h-4 w-4" />} />
           <PageButton label="이전" disabled={page === 0} onClick={() => props.onPage(page - 1)} icon={<ChevronLeftIcon className="h-4 w-4" />} />
           {visiblePages.map((index) => <button type="button" key={index} onClick={() => props.onPage(index)} className={`h-8 min-w-8 shrink-0 rounded-md px-2 text-sm font-medium ${page === index ? "bg-indigo-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>{index + 1}</button>)}
